@@ -1,62 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
 import { Award, AlertTriangle, Users, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Mockdata för demonstration
-const initialScammers = [
-  {
-    id: 1,
-    name: "Alex Crypto Guru",
-    twitterHandle: "cryptoguru_alex",
-    scamDescription: "Created fake NFT project 'Moon Apes' and disappeared with 500 ETH. Multiple victims reported losing significant investments.",
-    votes: 1337,
-    amountStolenUSD: 2500000,
-    amountStolenSOL: 25000,
-    lawsuitSignatures: 892,
-    targetSignatures: 1000
-  },
-  {
-    id: 2,
-    name: "Sarah DeFi Queen",
-    twitterHandle: "defi_sarah",
-    scamDescription: "Promoted rugpull token 'SafeMoon2.0' to 50k followers. Project collapsed after reaching $2M market cap.",
-    votes: 892,
-    amountStolenUSD: 1800000,
-    amountStolenSOL: 18000,
-    lawsuitSignatures: 654,
-    targetSignatures: 1000
-  },
-  {
-    id: 3,
-    name: "Crypto Wolf",
-    twitterHandle: "wolf_trades",
-    scamDescription: "Ran fake cryptocurrency giveaway scam, stolen amount: 245 BTC. Multiple fake Twitter accounts used.",
-    votes: 654,
-    amountStolenUSD: 1200000,
-    amountStolenSOL: 12000,
-    lawsuitSignatures: 445,
-    targetSignatures: 1000
-  },
-];
-
 const Index = () => {
-  const [scammers, setScammers] = useState(initialScammers);
+  const [scammers, setScammers] = useState([]);
+
+  useEffect(() => {
+    // Load leaderboard data from localStorage
+    const leaderboardData = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+    setScammers(leaderboardData);
+  }, []);
 
   const handleVote = (id: number) => {
-    setScammers(scammers.map(scammer => 
+    const updatedScammers = scammers.map(scammer => 
       scammer.id === id 
         ? { ...scammer, votes: scammer.votes + 1 }
         : scammer
-    ));
+    );
+    
+    // Update localStorage and state
+    localStorage.setItem('leaderboard', JSON.stringify(updatedScammers));
+    setScammers(updatedScammers);
   };
 
   const stats = {
     totalVotes: scammers.reduce((acc, curr) => acc + curr.votes, 0),
     totalScammers: scammers.length,
     totalStolenUSD: scammers.reduce((acc, curr) => acc + curr.amountStolenUSD, 0),
-    totalStolenSOL: scammers.reduce((acc, curr) => acc + curr.amountStolenSOL, 0)
+    totalStolenSOL: scammers.reduce((acc, curr) => acc + (curr.amountStolenSOL || 0), 0)
   };
 
   return (
@@ -140,6 +113,12 @@ const Index = () => {
                     />
                   </div>
                 ))}
+              
+              {scammers.length === 0 && (
+                <div className="text-center text-muted-foreground py-12">
+                  No scammers on the leaderboard yet. Check the pending nominations!
+                </div>
+              )}
             </div>
           </div>
           

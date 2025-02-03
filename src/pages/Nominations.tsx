@@ -1,37 +1,48 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Users, TrendingUp } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ScammerCard from "@/components/ScammerCard";
-
-// Mock data for demonstration
-const pendingNominations = [
-  {
-    id: 4,
-    name: "DeFi Trader Pro",
-    twitterHandle: "defitraderpro",
-    scamDescription: "Promised 1000% returns through fake DeFi platform. Collected investments and disappeared.",
-    votes: 234,
-    amountStolenUSD: 750000,
-    lawsuitSignatures: 156,
-    targetSignatures: 1000
-  },
-  {
-    id: 5,
-    name: "NFT Marketplace Scammer",
-    twitterHandle: "nft_marketplace",
-    scamDescription: "Created fake NFT marketplace with artificially inflated prices. Exit scammed with user funds.",
-    votes: 378,
-    amountStolenUSD: 450000,
-    lawsuitSignatures: 289,
-    targetSignatures: 1000
-  }
-];
+import { useToast } from "@/components/ui/use-toast";
 
 const Nominations = () => {
+  const [pendingNominations, setPendingNominations] = useState([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Load nominations from localStorage
+    const nominations = JSON.parse(localStorage.getItem('pendingNominations') || '[]');
+    setPendingNominations(nominations);
+  }, []);
+
   const handleVote = (id: number) => {
-    // In a real app, this would make an API call to update the vote count
-    console.log(`Voted for scammer with ID: ${id}`);
+    const updatedNominations = pendingNominations.map(nomination => {
+      if (nomination.id === id) {
+        const newVotes = nomination.votes + 1;
+        
+        // Check if nomination should move to leaderboard
+        if (newVotes >= 500) {
+          // Get existing leaderboard entries
+          const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+          
+          // Add to leaderboard
+          localStorage.setItem('leaderboard', JSON.stringify([...leaderboard, {...nomination, votes: newVotes}]));
+          
+          toast({
+            title: "Nomination Promoted!",
+            description: `${nomination.name} has reached 500 votes and has been moved to the leaderboard.`,
+          });
+          
+          // Remove from pending nominations
+          return null;
+        }
+        
+        return { ...nomination, votes: newVotes };
+      }
+      return nomination;
+    }).filter(Boolean); // Remove null entries
+
+    // Update localStorage and state
+    localStorage.setItem('pendingNominations', JSON.stringify(updatedNominations));
+    setPendingNominations(updatedNominations);
   };
 
   return (
@@ -44,31 +55,28 @@ const Nominations = () => {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             These scammers need 500 votes to appear on the main leaderboard. Help expose them by voting!
           </p>
+          <Link 
+            to="/" 
+            className="inline-block mt-4 text-primary hover:text-primary/80 transition-colors"
+          >
+            ← Back to Leaderboard
+          </Link>
         </header>
 
         <div className="grid gap-6">
           {pendingNominations.map((nomination) => (
             <ScammerCard
               key={nomination.id}
-              name={nomination.name}
-              twitterHandle={nomination.twitterHandle}
-              scamDescription={nomination.scamDescription}
-              votes={nomination.votes}
+              {...nomination}
               onVote={() => handleVote(nomination.id)}
-              amountStolenUSD={nomination.amountStolenUSD}
-              lawsuitSignatures={nomination.lawsuitSignatures}
-              targetSignatures={nomination.targetSignatures}
             />
           ))}
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link 
-            to="/" 
-            className="text-primary hover:text-primary/80 transition-colors"
-          >
-            ← Back to Leaderboard
-          </Link>
+          
+          {pendingNominations.length === 0 && (
+            <div className="text-center text-muted-foreground py-12">
+              No pending nominations at the moment.
+            </div>
+          )}
         </div>
       </div>
     </div>

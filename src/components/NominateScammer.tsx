@@ -10,18 +10,42 @@ const NominateScammer = () => {
   const [twitter, setTwitter] = useState("");
   const [description, setDescription] = useState("");
   const [amountUSD, setAmountUSD] = useState("");
+  const [tokenName, setTokenName] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Add the new nomination to pending nominations
+    const newNomination = {
+      id: Date.now(), // Using timestamp as temporary ID
+      name,
+      twitterHandle: twitter.replace('@', ''),
+      scamDescription: description,
+      votes: 0,
+      amountStolenUSD: parseFloat(amountUSD),
+      tokenName,
+      lawsuitSignatures: 0,
+      targetSignatures: 1000
+    };
+
+    // Get existing nominations from localStorage
+    const existingNominations = JSON.parse(localStorage.getItem('pendingNominations') || '[]');
+    
+    // Add new nomination
+    localStorage.setItem('pendingNominations', JSON.stringify([...existingNominations, newNomination]));
+
     toast({
       title: "Nomination submitted",
       description: "Thank you for helping keep the Web3 community safe!",
     });
+
+    // Reset form
     setName("");
     setTwitter("");
     setDescription("");
     setAmountUSD("");
+    setTokenName("");
   };
 
   return (
@@ -50,6 +74,17 @@ const NominateScammer = () => {
           value={twitter}
           onChange={(e) => setTwitter(e.target.value)}
           placeholder="@handle"
+          className="bg-secondary/30"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Token Name</label>
+        <Input
+          value={tokenName}
+          onChange={(e) => setTokenName(e.target.value)}
+          placeholder="e.g. SAFE, MOON"
           className="bg-secondary/30"
           required
         />

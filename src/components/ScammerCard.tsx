@@ -1,4 +1,4 @@
-import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign } from "lucide-react";
+import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +22,7 @@ interface ScammerCardProps {
   amountStolenUSD: number;
   lawsuitSignatures: number;
   targetSignatures: number;
+  tokenName?: string;
 }
 
 const ScammerCard = ({ 
@@ -33,7 +34,8 @@ const ScammerCard = ({
   rank,
   amountStolenUSD,
   lawsuitSignatures,
-  targetSignatures
+  targetSignatures,
+  tokenName
 }: ScammerCardProps) => {
   const [showLawsuitDialog, setShowLawsuitDialog] = useState(false);
   const signatureProgress = (lawsuitSignatures / targetSignatures) * 100;
@@ -81,7 +83,7 @@ const ScammerCard = ({
             <p className="text-muted-foreground">{scamDescription}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="bg-secondary/20 p-3 rounded-lg">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <DollarSign className="h-4 w-4" />
@@ -91,6 +93,18 @@ const ScammerCard = ({
                 ${amountStolenUSD.toLocaleString()}
               </div>
             </div>
+
+            {tokenName && (
+              <div className="bg-secondary/20 p-3 rounded-lg">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Coins className="h-4 w-4" />
+                  <span>Token</span>
+                </div>
+                <div className="font-bold">
+                  {tokenName}
+                </div>
+              </div>
+            )}
 
             <div className="bg-secondary/20 p-3 rounded-lg">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
