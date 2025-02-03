@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
 interface ScammerCardProps {
-  id: string; // Add this line
+  id: string;
   name: string;
   twitterHandle: string;
   scamDescription: string;
@@ -31,7 +31,7 @@ interface ScammerCardProps {
 }
 
 const ScammerCard = ({ 
-  id, // Add this line
+  id,
   name, 
   twitterHandle, 
   scamDescription, 
@@ -59,7 +59,7 @@ const ScammerCard = ({
         .from('user_actions')
         .select('action_type')
         .eq('user_id', session.user.id)
-        .eq('scammer_id', id); // Use id instead of rank
+        .eq('scammer_id', parseInt(id)); // Convert string ID to number
 
       if (userActions) {
         setHasVoted(userActions.some(action => action.action_type === 'vote'));
@@ -77,7 +77,7 @@ const ScammerCard = ({
     };
 
     checkUserActions();
-  }, [session, id]); // Update dependency
+  }, [session, id]);
 
   const handleAction = async (action: 'vote' | 'lawsuit') => {
     if (!session) {
@@ -111,7 +111,7 @@ const ScammerCard = ({
           .from('user_actions')
           .insert({
             user_id: session.user.id,
-            scammer_id: id, // Use id instead of rank
+            scammer_id: parseInt(id), // Convert string ID to number
             action_type: action
           });
 
@@ -119,7 +119,6 @@ const ScammerCard = ({
       }
 
       if (action === 'vote') {
-        // Update the votes count in the nominations table
         const { error: updateError } = await supabase
           .from('nominations')
           .update({ votes: votes + 1 })
