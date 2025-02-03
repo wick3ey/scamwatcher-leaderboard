@@ -3,10 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { GavelIcon, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { GavelIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import countries from "../data/countries";
 
 interface SignLawsuitDialogProps {
@@ -29,15 +29,21 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showCountryList, setShowCountryList] = useState(false);
-
+  const { session, signIn } = useAuth();
   const { toast } = useToast();
 
-  const filteredCountries = countries.filter(country =>
-    country.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in with Google to sign the lawsuit",
+      });
+      await signIn();
+      return;
+    }
+
     toast({
       title: "Lawsuit signature submitted",
       description: "Thank you for joining the lawsuit. We will contact you with further details.",
@@ -48,6 +54,10 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
   };
+
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

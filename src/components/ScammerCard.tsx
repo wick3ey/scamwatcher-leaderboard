@@ -48,7 +48,7 @@ const ScammerCard = ({
     if (!session) {
       toast({
         title: "Authentication required",
-        description: "Please sign in to perform this action",
+        description: "Please sign in with Google to " + (action === 'vote' ? 'vote' : 'sign the lawsuit'),
       });
       await signIn();
       return;
