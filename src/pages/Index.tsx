@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
-import { Award, AlertTriangle, Users, DollarSign } from "lucide-react";
+import { Award, AlertTriangle, Users, DollarSign, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Index = () => {
   const [scammers, setScammers] = useState([]);
@@ -40,7 +41,7 @@ const Index = () => {
           <UserMenu />
         </div>
         
-        <header className="text-center mb-12 animate-fade-in">
+        <header className="text-center mb-8 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Web3 Scammer Leaderboard
           </h1>
@@ -48,13 +49,25 @@ const Index = () => {
             A community-driven initiative to identify and track Web3 scammers. 
             Help protect others by voting and nominating known scammers.
           </p>
-          <Link 
-            to="/nominations" 
-            className="inline-block mt-4 text-primary hover:text-primary/80 transition-colors"
-          >
-            View Pending Nominations →
-          </Link>
         </header>
+
+        <Alert className="mb-8 border-primary/20 bg-primary/5">
+          <Info className="h-5 w-5 text-primary" />
+          <AlertDescription className="mt-2 text-base leading-relaxed">
+            <p className="mb-3">
+              We're taking a stand against the growing epidemic of crypto scams perpetrated by influential figures in our community. Too often, Twitter KOLs, celebrities, and high-profile influencers exploit their followers' trust, walking away with millions while leaving community members helpless and devastated.
+            </p>
+            <p className="mb-3">
+              These actions not only harm individuals but tarnish the reputation of the entire crypto community. While these scammers profit from their schemes with impunity, honest community members are left without recourse or a voice.
+            </p>
+            <p className="mb-3">
+              <strong>This is where we come in.</strong> Our platform empowers the community to take action. Once a scammer reaches 1,000 lawsuit signatures, we will forward all signatures and evidence to specialized lawsuit firms who will pursue legal action on behalf of the affected community members.
+            </p>
+            <p>
+              Together, we can hold these bad actors accountable and restore integrity to our community. Your voice matters, and we're here to amplify it.
+            </p>
+          </AlertDescription>
+        </Alert>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in">
           <div className="glass-card p-6 flex items-center gap-4">
