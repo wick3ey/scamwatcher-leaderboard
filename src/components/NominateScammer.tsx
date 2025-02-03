@@ -18,10 +18,11 @@ const NominateScammer = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check if user is authenticated
     if (!session) {
       toast({
         title: "Authentication required",
-        description: "Please sign in to nominate a scammer",
+        description: "Please sign in with Google to nominate a scammer",
       });
       await signIn();
       return;
@@ -38,7 +39,8 @@ const NominateScammer = () => {
         amountStolenUSD: parseFloat(amountUSD),
         tokenName,
         lawsuitSignatures: 0,
-        targetSignatures: 1000
+        targetSignatures: 1000,
+        nominatedBy: session.user.email
       };
 
       // Get existing nominations from localStorage
