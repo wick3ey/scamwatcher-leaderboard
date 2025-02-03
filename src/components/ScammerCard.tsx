@@ -1,4 +1,4 @@
-import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink } from "lucide-react";
+import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 interface ScammerCardProps {
   name: string;
@@ -16,9 +17,26 @@ interface ScammerCardProps {
   votes: number;
   onVote: () => void;
   rank?: number;
+  amountStolenUSD: number;
+  amountStolenSOL: number;
+  lawsuitSignatures: number;
+  targetSignatures: number;
 }
 
-const ScammerCard = ({ name, twitterHandle, scamDescription, votes, onVote, rank }: ScammerCardProps) => {
+const ScammerCard = ({ 
+  name, 
+  twitterHandle, 
+  scamDescription, 
+  votes, 
+  onVote, 
+  rank,
+  amountStolenUSD,
+  amountStolenSOL,
+  lawsuitSignatures,
+  targetSignatures
+}: ScammerCardProps) => {
+  const signatureProgress = (lawsuitSignatures / targetSignatures) * 100;
+
   return (
     <Card className="glass-card transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
       <CardHeader className="relative">
@@ -52,13 +70,39 @@ const ScammerCard = ({ name, twitterHandle, scamDescription, votes, onVote, rank
         </div>
       </CardHeader>
       
-      <CardContent className="mt-4">
+      <CardContent className="space-y-4">
         <div className="bg-secondary/30 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="h-4 w-4 text-primary" />
             <span className="font-semibold">Scam Warning</span>
           </div>
           <p className="text-muted-foreground">{scamDescription}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-secondary/20 p-3 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <Wallet className="h-4 w-4" />
+              <span>Amount Stolen</span>
+            </div>
+            <div className="font-bold">
+              {amountStolenSOL.toFixed(2)} SOL
+            </div>
+            <div className="text-sm text-muted-foreground">
+              (${amountStolenUSD.toLocaleString()})
+            </div>
+          </div>
+
+          <div className="bg-secondary/20 p-3 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <GavelIcon className="h-4 w-4" />
+              <span>Lawsuit Progress</span>
+            </div>
+            <Progress value={signatureProgress} className="h-2 mb-1" />
+            <div className="text-sm text-muted-foreground">
+              {lawsuitSignatures} / {targetSignatures} signatures
+            </div>
+          </div>
         </div>
       </CardContent>
       
@@ -68,15 +112,25 @@ const ScammerCard = ({ name, twitterHandle, scamDescription, votes, onVote, rank
             {votes.toLocaleString()} votes
           </div>
         </div>
-        <Button 
-          onClick={onVote} 
-          variant="secondary" 
-          size="sm"
-          className="transition-all duration-300 hover:bg-primary hover:text-white"
-        >
-          <ArrowUp className="mr-2 h-4 w-4" />
-          Vote Up
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={onVote} 
+            variant="secondary" 
+            size="sm"
+            className="transition-all duration-300 hover:bg-primary hover:text-white"
+          >
+            <ArrowUp className="mr-2 h-4 w-4" />
+            Vote Up
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="transition-all duration-300 hover:bg-primary hover:text-white"
+          >
+            <GavelIcon className="mr-2 h-4 w-4" />
+            Sign Lawsuit
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

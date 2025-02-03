@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { AlertTriangle, Send } from "lucide-react";
+import { AlertTriangle, Send, DollarSign, Wallet } from "lucide-react";
 
 const NominateScammer = () => {
   const [name, setName] = useState("");
   const [twitter, setTwitter] = useState("");
   const [description, setDescription] = useState("");
+  const [amountUSD, setAmountUSD] = useState("");
+  const [amountSOL, setAmountSOL] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,6 +22,24 @@ const NominateScammer = () => {
     setName("");
     setTwitter("");
     setDescription("");
+    setAmountUSD("");
+    setAmountSOL("");
+  };
+
+  // Helper function to calculate SOL amount based on USD input
+  const handleUSDChange = (value: string) => {
+    setAmountUSD(value);
+    // Assuming 1 SOL = $100 (this should be dynamic in production)
+    const solAmount = parseFloat(value) / 100;
+    setAmountSOL(solAmount.toFixed(2));
+  };
+
+  // Helper function to calculate USD amount based on SOL input
+  const handleSOLChange = (value: string) => {
+    setAmountSOL(value);
+    // Assuming 1 SOL = $100 (this should be dynamic in production)
+    const usdAmount = parseFloat(value) * 100;
+    setAmountUSD(usdAmount.toFixed(2));
   };
 
   return (
@@ -51,6 +71,38 @@ const NominateScammer = () => {
           className="bg-secondary/30"
           required
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Amount Stolen (USD)</label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="number"
+              value={amountUSD}
+              onChange={(e) => handleUSDChange(e.target.value)}
+              placeholder="0.00"
+              className="bg-secondary/30 pl-9"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Amount in SOL</label>
+          <div className="relative">
+            <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="number"
+              value={amountSOL}
+              onChange={(e) => handleSOLChange(e.target.value)}
+              placeholder="0.00"
+              className="bg-secondary/30 pl-9"
+              required
+            />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">
