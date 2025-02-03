@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -20,16 +19,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Trash2, Edit2, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { ScammerEditForm } from "@/components/admin/ScammerEditForm";
+import { 
+  Trash2, 
+  Edit2, 
+  ArrowUpCircle, 
+  ArrowDownCircle,
+  Settings,
+  Save,
+  Plus,
+  Minus
+} from "lucide-react";
 
 const AdminDashboard = () => {
   const { session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [nominations, setNominations] = useState<any[]>([]);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     checkAdminStatus();
@@ -56,74 +64,133 @@ const AdminDashboard = () => {
     setIsAdmin(true);
   };
 
-  const loadData = () => {
-    // Load data from localStorage for now
-    const leaderboardData = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-    const nominationsData = JSON.parse(localStorage.getItem('pendingNominations') || '[]');
-    setLeaderboard(leaderboardData);
-    setNominations(nominationsData);
-  };
+  const loadData = async () => {
+    const { data, error } = await supabase
+      .from('nominations')
+      .select('*')
+      .order('votes', { ascending: false });
 
-  const handleDelete = (id: number, type: 'leaderboard' | 'nomination') => {
-    if (type === 'leaderboard') {
-      const updatedLeaderboard = leaderboard.filter(item => item.id !== id);
-      localStorage.setItem('leaderboard', JSON.stringify(updatedLeaderboard));
-      setLeaderboard(updatedLeaderboard);
-    } else {
-      const updatedNominations = nominations.filter(item => item.id !== id);
-      localStorage.setItem('pendingNominations', JSON.stringify(updatedNominations));
-      setNominations(updatedNominations);
-    }
-    toast({
-      title: "Item deleted",
-      description: "The item has been successfully deleted.",
-    });
-  };
-
-  const handleVoteChange = (id: number, increment: boolean, type: 'leaderboard' | 'nomination') => {
-    const array = type === 'leaderboard' ? leaderboard : nominations;
-    const updatedArray = array.map(item => {
-      if (item.id === id) {
-        return {
-          ...item,
-          votes: increment ? item.votes + 100 : Math.max(0, item.votes - 100)
-        };
-      }
-      return item;
-    });
-
-    if (type === 'leaderboard') {
-      localStorage.setItem('leaderboard', JSON.stringify(updatedArray));
-      setLeaderboard(updatedArray);
-    } else {
-      localStorage.setItem('pendingNominations', JSON.stringify(updatedArray));
-      setNominations(updatedArray);
+    if (error) {
+      toast({
+        title: "Fel vid laddning av data",
+        description: error.message,
+        variant: "destructive"
+      });
+      return;
     }
 
+    setNominations(data || []);
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase
+      .from('nominations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Fel vid borttagning",
+        description: error.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await loadData();
     toast({
-      title: "Votes updated",
-      description: `Votes ${increment ? 'increased' : 'decreased'} by 100.`,
+      title: "Borttagen",
+      description: "Scammern har tagits bort från systemet.",
     });
   };
 
-  const handleLawsuitChange = (id: number, increment: boolean) => {
-    const updatedLeaderboard = leaderboard.map(item => {
-      if (item.id === id) {
-        return {
-          ...item,
-          lawsuitSignatures: increment 
-            ? item.lawsuitSignatures + 100 
-            : Math.max(0, item.lawsuitSignatures - 100)
-        };
-      }
-      return item;
-    });
+  const handleSave = async (updatedScammer: any) => {
+    const { error } = await supabase
+      .from('nominations')
+      .update({
+        name: updatedScammer.name,
+        twitter_handle: updatedScammer.twitterHandle,
+        scam_description: updatedScammer.scamDescription,
+        amount_stolen_usd: updatedScammer.amountStolenUSD,
+        token_name: updatedScammer.tokenName,
+        votes: updatedScammer.votes,
+        lawsuit_signatures: updatedScammer.lawsuitSignatures,
+        target_signatures: updatedScammer.targetSignatures
+      })
+      .eq('id', updatedScammer.id);
 
-    localStorage.setItem('leaderboard', JSON.stringify(updatedLeaderboard));
-    setLeaderboard(updatedLeaderboard);
+    if (error) {
+      toast({
+        title: "Fel vid uppdatering",
+        description: error.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setEditingId(null);
+    await loadData();
     toast({
-      title: "Signatures updated",
-      description: `Signatures ${increment ? 'increased' : 'decreased'} by 100.`,
+      title: "Uppdaterad",
+      description: "Informationen har sparats.",
+    });
+  };
+
+  const adjustSignatures = async (id: string, increment: boolean, amount: number = 100) => {
+    const scammer = nominations.find(n => n.id === id);
+    if (!scammer) return;
+
+    const newSignatures = increment 
+      ? scammer.lawsuit_signatures + amount 
+      : Math.max(0, scammer.lawsuit_signatures - amount);
+
+    const { error } = await supabase
+      .from('nominations')
+      .update({ lawsuit_signatures: newSignatures })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Fel vid uppdatering",
+        description: error.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await loadData();
+    toast({
+      title: "Signaturer uppdaterade",
+      description: `Antalet signaturer har ${increment ? 'ökats' : 'minskats'} med ${amount}.`,
+    });
+  };
+
+  const adjustVotes = async (id: string, increment: boolean, amount: number = 100) => {
+    const scammer = nominations.find(n => n.id === id);
+    if (!scammer) return;
+
+    const newVotes = increment 
+      ? scammer.votes + amount 
+      : Math.max(0, scammer.votes - amount);
+
+    const { error } = await supabase
+      .from('nominations')
+      .update({ votes: newVotes })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Fel vid uppdatering",
+        description: error.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await loadData();
+    toast({
+      title: "Röster uppdaterade",
+      description: `Antalet röster har ${increment ? 'ökats' : 'minskats'} med ${amount}.`,
     });
   };
 
@@ -135,142 +202,127 @@ const AdminDashboard = () => {
     <div className="container mx-auto p-6 space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Admin Dashboard</CardTitle>
-          <CardDescription>
-            Manage scammer entries and nominations. Only authorized administrators have access to these controls.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Admin Dashboard</CardTitle>
+              <CardDescription>
+                Hantera scammers, signaturer och röster. Endast auktoriserade administratörer har tillgång till dessa kontroller.
+              </CardDescription>
+            </div>
+            <Settings className="h-6 w-6 text-muted-foreground" />
+          </div>
         </CardHeader>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Leaderboard Management</CardTitle>
+          <CardTitle>Hantera Scammers</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Twitter</TableHead>
-                <TableHead>Votes</TableHead>
-                <TableHead>Signatures</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leaderboard.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>@{item.twitterHandle}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {item.votes}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleVoteChange(item.id, true, 'leaderboard')}
-                      >
-                        <ArrowUpCircle className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleVoteChange(item.id, false, 'leaderboard')}
-                      >
-                        <ArrowDownCircle className="h-4 w-4" />
-                      </Button>
+          <div className="space-y-6">
+            {nominations.map((scammer) => (
+              <Card key={scammer.id} className="p-4">
+                {editingId === scammer.id ? (
+                  <ScammerEditForm
+                    scammer={{
+                      id: scammer.id,
+                      name: scammer.name,
+                      twitterHandle: scammer.twitter_handle,
+                      scamDescription: scammer.scam_description,
+                      amountStolenUSD: scammer.amount_stolen_usd,
+                      tokenName: scammer.token_name,
+                      votes: scammer.votes,
+                      lawsuitSignatures: scammer.lawsuit_signatures,
+                      targetSignatures: scammer.target_signatures
+                    }}
+                    onSave={handleSave}
+                    onCancel={() => setEditingId(null)}
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">{scammer.name}</h3>
+                        <p className="text-sm text-muted-foreground">@{scammer.twitter_handle}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setEditingId(scammer.id)}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleDelete(scammer.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {item.lawsuitSignatures}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleLawsuitChange(item.id, true)}
-                      >
-                        <ArrowUpCircle className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleLawsuitChange(item.id, false)}
-                      >
-                        <ArrowDownCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDelete(item.id, 'leaderboard')}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Nominations Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Twitter</TableHead>
-                <TableHead>Votes</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {nominations.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>@{item.twitterHandle}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {item.votes}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleVoteChange(item.id, true, 'nomination')}
-                      >
-                        <ArrowUpCircle className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleVoteChange(item.id, false, 'nomination')}
-                      >
-                        <ArrowDownCircle className="h-4 w-4" />
-                      </Button>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Röster: {scammer.votes}</span>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => adjustVotes(scammer.id, true)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => adjustVotes(scammer.id, false)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">
+                            Signaturer: {scammer.lawsuit_signatures} / {scammer.target_signatures}
+                          </span>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => adjustSignatures(scammer.id, true)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => adjustSignatures(scammer.id, false)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDelete(item.id, 'nomination')}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+
+                    <div className="text-sm text-muted-foreground">
+                      <p><strong>Beskrivning:</strong> {scammer.scam_description}</p>
+                      <p><strong>Stulen summa:</strong> ${scammer.amount_stolen_usd.toLocaleString()}</p>
+                      {scammer.token_name && (
+                        <p><strong>Token:</strong> {scammer.token_name}</p>
+                      )}
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

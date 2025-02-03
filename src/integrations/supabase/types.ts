@@ -30,6 +30,48 @@ export type Database = {
         }
         Relationships: []
       }
+      nominations: {
+        Row: {
+          amount_stolen_usd: number
+          created_at: string
+          id: string
+          lawsuit_signatures: number | null
+          name: string
+          nominated_by: string | null
+          scam_description: string
+          target_signatures: number | null
+          token_name: string | null
+          twitter_handle: string
+          votes: number | null
+        }
+        Insert: {
+          amount_stolen_usd: number
+          created_at?: string
+          id?: string
+          lawsuit_signatures?: number | null
+          name: string
+          nominated_by?: string | null
+          scam_description: string
+          target_signatures?: number | null
+          token_name?: string | null
+          twitter_handle: string
+          votes?: number | null
+        }
+        Update: {
+          amount_stolen_usd?: number
+          created_at?: string
+          id?: string
+          lawsuit_signatures?: number | null
+          name?: string
+          nominated_by?: string | null
+          scam_description?: string
+          target_signatures?: number | null
+          token_name?: string | null
+          twitter_handle?: string
+          votes?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
