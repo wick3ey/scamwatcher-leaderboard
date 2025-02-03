@@ -51,10 +51,10 @@ const NominateScammer = () => {
   return (
     <form onSubmit={handleSubmit} className="glass-card p-6 space-y-6 animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
-        <div className="bg-primary/20 p-2 rounded-full">
-          <AlertTriangle className="h-5 w-5 text-primary" />
+        <div className="bg-gradient-to-br from-[#9b87f5]/20 to-[#D946EF]/20 p-2 rounded-full">
+          <AlertTriangle className="h-5 w-5 text-[#9b87f5]" />
         </div>
-        <h2 className="text-2xl font-bold">Nominate a Scammer</h2>
+        <h2 className="text-2xl font-bold gradient-text">Nominate a Scammer</h2>
       </div>
       
       <div className="space-y-2">
@@ -63,7 +63,7 @@ const NominateScammer = () => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Scammer's name"
-          className="bg-secondary/30"
+          className="bg-white/5 border-white/10 focus:border-[#9b87f5] transition-colors"
           required
         />
       </div>
@@ -74,7 +74,7 @@ const NominateScammer = () => {
           value={twitter}
           onChange={(e) => setTwitter(e.target.value)}
           placeholder="@handle"
-          className="bg-secondary/30"
+          className="bg-white/5 border-white/10 focus:border-[#9b87f5] transition-colors"
           required
         />
       </div>
@@ -85,7 +85,7 @@ const NominateScammer = () => {
           value={tokenName}
           onChange={(e) => setTokenName(e.target.value)}
           placeholder="e.g. SAFE, MOON"
-          className="bg-secondary/30"
+          className="bg-white/5 border-white/10 focus:border-[#9b87f5] transition-colors"
           required
         />
       </div>
@@ -93,13 +93,13 @@ const NominateScammer = () => {
       <div className="space-y-2">
         <label className="text-sm font-medium">Amount Stolen (USD)</label>
         <div className="relative">
-          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             type="number"
             value={amountUSD}
             onChange={(e) => setAmountUSD(e.target.value)}
             placeholder="0.00"
-            className="bg-secondary/30 pl-9"
+            className="bg-white/5 border-white/10 focus:border-[#9b87f5] transition-colors pl-9"
             required
           />
         </div>
@@ -112,11 +112,14 @@ const NominateScammer = () => {
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Describe the scam in detail..."
           required
-          className="min-h-[100px] bg-secondary/30"
+          className="min-h-[100px] bg-white/5 border-white/10 focus:border-[#9b87f5] transition-colors"
         />
       </div>
 
-      <Button type="submit" className="w-full group">
+      <Button 
+        type="submit" 
+        className="w-full bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-white hover:opacity-90 transition-opacity group"
+      >
         <Send className="mr-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
         Submit Nomination
       </Button>

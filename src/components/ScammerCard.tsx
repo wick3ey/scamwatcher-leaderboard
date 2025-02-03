@@ -42,27 +42,27 @@ const ScammerCard = ({
 
   return (
     <>
-      <Card className="glass-card transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <Card className="glass-card group animate-fade-in hover:translate-y-[-4px]">
         <CardHeader className="relative">
           {rank && (
-            <div className="absolute -left-2 -top-2 bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold animate-fade-in">
+            <div className="absolute -left-2 -top-2 bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg animate-pulse-glow">
               #{rank}
             </div>
           )}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-secondary/50 p-2 rounded-full">
-                <User className="h-6 w-6 text-primary" />
+              <div className="bg-gradient-to-br from-[#9b87f5]/20 to-[#D946EF]/20 p-2 rounded-full">
+                <User className="h-6 w-6 text-[#9b87f5]" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold mb-1">{name}</CardTitle>
+                <CardTitle className="text-xl font-bold mb-1 gradient-text">{name}</CardTitle>
                 <CardDescription className="flex items-center gap-2">
-                  <Twitter className="h-4 w-4" />
+                  <Twitter className="h-4 w-4 text-[#9b87f5]" />
                   <a 
                     href={`https://twitter.com/${twitterHandle}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline flex items-center gap-1"
+                    className="text-[#9b87f5] hover:text-[#D946EF] transition-colors flex items-center gap-1"
                   >
                     @{twitterHandle}
                     <ExternalLink className="h-3 w-3" />
@@ -70,49 +70,49 @@ const ScammerCard = ({
                 </CardDescription>
               </div>
             </div>
-            <AlertCircle className="text-primary h-6 w-6 animate-pulse" />
+            <AlertCircle className="text-[#F97316] h-6 w-6 animate-pulse" />
           </div>
         </CardHeader>
         
         <CardContent className="space-y-4">
-          <div className="bg-secondary/30 p-4 rounded-lg">
+          <div className="bg-white/5 p-4 rounded-lg backdrop-blur-lg border border-white/10">
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="h-4 w-4 text-primary" />
-              <span className="font-semibold">Scam Warning</span>
+              <Shield className="h-4 w-4 text-[#9b87f5]" />
+              <span className="font-semibold text-[#D946EF]">Scam Warning</span>
             </div>
-            <p className="text-muted-foreground">{scamDescription}</p>
+            <p className="text-gray-300">{scamDescription}</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-secondary/20 p-3 rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <DollarSign className="h-4 w-4" />
+            <div className="bg-white/5 p-3 rounded-lg backdrop-blur-lg border border-white/10 hover:border-[#9b87f5]/50 transition-colors">
+              <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                <DollarSign className="h-4 w-4 text-[#9b87f5]" />
                 <span>Amount Stolen</span>
               </div>
-              <div className="font-bold">
+              <div className="font-bold text-[#D946EF]">
                 ${amountStolenUSD.toLocaleString()}
               </div>
             </div>
 
             {tokenName && (
-              <div className="bg-secondary/20 p-3 rounded-lg">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <Coins className="h-4 w-4" />
+              <div className="bg-white/5 p-3 rounded-lg backdrop-blur-lg border border-white/10 hover:border-[#9b87f5]/50 transition-colors">
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                  <Coins className="h-4 w-4 text-[#9b87f5]" />
                   <span>Token</span>
                 </div>
-                <div className="font-bold">
+                <div className="font-bold text-[#D946EF]">
                   {tokenName}
                 </div>
               </div>
             )}
 
-            <div className="bg-secondary/20 p-3 rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <GavelIcon className="h-4 w-4" />
+            <div className="bg-white/5 p-3 rounded-lg backdrop-blur-lg border border-white/10 hover:border-[#9b87f5]/50 transition-colors">
+              <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                <GavelIcon className="h-4 w-4 text-[#9b87f5]" />
                 <span>Lawsuit Progress</span>
               </div>
-              <Progress value={signatureProgress} className="h-2 mb-1" />
-              <div className="text-sm text-muted-foreground">
+              <Progress value={signatureProgress} className="h-2 mb-1 bg-white/10" />
+              <div className="text-sm text-gray-400">
                 {lawsuitSignatures} / {targetSignatures} signatures
               </div>
             </div>
@@ -121,7 +121,7 @@ const ScammerCard = ({
         
         <CardFooter className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">
-            <div className="bg-secondary/50 px-3 py-1 rounded-full text-sm">
+            <div className="bg-white/5 px-3 py-1 rounded-full text-sm border border-white/10">
               {votes.toLocaleString()} votes
             </div>
           </div>
@@ -130,7 +130,7 @@ const ScammerCard = ({
               onClick={onVote} 
               variant="secondary" 
               size="sm"
-              className="transition-all duration-300 hover:bg-primary hover:text-white"
+              className="bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-white hover:opacity-90 transition-opacity"
             >
               <ArrowUp className="mr-2 h-4 w-4" />
               Vote Up
@@ -138,7 +138,7 @@ const ScammerCard = ({
             <Button
               variant="outline"
               size="sm"
-              className="transition-all duration-300 hover:bg-primary hover:text-white"
+              className="border border-[#9b87f5] text-[#9b87f5] hover:bg-[#9b87f5] hover:text-white transition-all"
               onClick={() => setShowLawsuitDialog(true)}
             >
               <GavelIcon className="mr-2 h-4 w-4" />
