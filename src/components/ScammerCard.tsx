@@ -11,6 +11,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import { SignLawsuitDialog } from "./SignLawsuitDialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ScammerCardProps {
   name: string;
@@ -38,7 +40,26 @@ const ScammerCard = ({
   tokenName
 }: ScammerCardProps) => {
   const [showLawsuitDialog, setShowLawsuitDialog] = useState(false);
+  const { session, signIn } = useAuth();
+  const { toast } = useToast();
   const signatureProgress = (lawsuitSignatures / targetSignatures) * 100;
+
+  const handleAction = async (action: 'vote' | 'lawsuit') => {
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to perform this action",
+      });
+      await signIn();
+      return;
+    }
+
+    if (action === 'vote') {
+      onVote();
+    } else {
+      setShowLawsuitDialog(true);
+    }
+  };
 
   return (
     <>
@@ -127,7 +148,7 @@ const ScammerCard = ({
           </div>
           <div className="flex gap-2">
             <Button 
-              onClick={onVote} 
+              onClick={() => handleAction('vote')} 
               variant="secondary" 
               size="sm"
               className="transition-all duration-300 hover:bg-primary hover:text-white"
@@ -139,7 +160,7 @@ const ScammerCard = ({
               variant="outline"
               size="sm"
               className="transition-all duration-300 hover:bg-primary hover:text-white"
-              onClick={() => setShowLawsuitDialog(true)}
+              onClick={() => handleAction('lawsuit')}
             >
               <GavelIcon className="mr-2 h-4 w-4" />
               Sign Lawsuit

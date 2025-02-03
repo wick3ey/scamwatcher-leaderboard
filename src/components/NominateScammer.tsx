@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertTriangle, Send, DollarSign } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NominateScammer = () => {
   const [name, setName] = useState("");
@@ -12,13 +13,23 @@ const NominateScammer = () => {
   const [amountUSD, setAmountUSD] = useState("");
   const [tokenName, setTokenName] = useState("");
   const { toast } = useToast();
+  const { session, signIn } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to nominate a scammer",
+      });
+      await signIn();
+      return;
+    }
     
     // Add the new nomination to pending nominations
     const newNomination = {
-      id: Date.now(), // Using timestamp as temporary ID
+      id: Date.now(),
       name,
       twitterHandle: twitter.replace('@', ''),
       scamDescription: description,
