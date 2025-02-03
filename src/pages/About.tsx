@@ -24,7 +24,7 @@ const About = () => {
               We are a community-driven platform dedicated to exposing and combating cryptocurrency scams perpetrated by influential figures. Our mission is to protect innocent investors and restore integrity to the crypto community.
             </p>
             <p>
-              Too often, high-profile individuals abuse their influence to profit from fraudulent schemes, leaving community members devastated and without recourse. We're here to change that by giving the community a voice and a means to take action.
+              Too often, high-profile individuals abuse their influence to profit from fraudulent schemes, leaving community members devastated and without recourse. We're here to change that by giving the community a voice and providing a path to legal action.
             </p>
           </section>
 
@@ -33,18 +33,36 @@ const About = () => {
             <div className="space-y-4">
               <div>
                 <h3 className="text-xl font-semibold mb-2">1. Nomination Process</h3>
-                <p>Anyone can nominate a scammer by providing detailed evidence of their fraudulent activities, including wallet addresses, transaction records, and documentation of their actions.</p>
+                <p>Anyone can nominate a suspected scammer to our platform. The nomination will enter our pending list where the community can review and vote.</p>
               </div>
               
               <div>
                 <h3 className="text-xl font-semibold mb-2">2. Community Verification</h3>
-                <p>Nominations enter a pending state where the community can review and vote. A nomination needs 500 votes to reach the main leaderboard, ensuring community consensus on legitimate cases.</p>
+                <p>A nomination needs to reach 500 votes to be moved to our main leaderboard. This threshold ensures community consensus on legitimate cases.</p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold mb-2">3. Legal Action</h3>
-                <p>Once a scammer reaches 1,000 lawsuit signatures, we compile all evidence and signatures and forward them to specialized lawsuit firms who will pursue legal action on behalf of the affected community members.</p>
+                <h3 className="text-xl font-semibold mb-2">3. Investigation & Evidence Gathering</h3>
+                <p>Once a nomination reaches 500 votes, our team initiates a thorough investigation to gather comprehensive evidence about the scam and the perpetrator's activities.</p>
               </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-2">4. Legal Action</h3>
+                <p>With the evidence gathered by our team and community signatures, we forward the complete case file to our partnered law firms. These specialized firms will pursue legal action regardless of the perpetrator's location. The more signatures we collect, the stronger our case becomes.</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="glass-card p-8">
+            <h2 className="text-2xl font-bold mb-4">Public Exposure</h2>
+            <div className="space-y-4">
+              <p>Beyond legal action, we maintain a public leaderboard of confirmed scammers to:</p>
+              <ul className="list-disc ml-6 space-y-2">
+                <li>Warn potential victims before they become targets</li>
+                <li>Create public awareness about common scam tactics</li>
+                <li>Deter other potential scammers through public exposure</li>
+                <li>Help the community identify and avoid known bad actors</li>
+              </ul>
             </div>
           </section>
 
@@ -53,24 +71,17 @@ const About = () => {
             <div className="space-y-4">
               <div>
                 <h3 className="text-xl font-semibold mb-2">Viewing Scammers</h3>
-                <p>Browse the main leaderboard to see confirmed scammers or check the pending nominations section for recent submissions. Each entry includes detailed information about the scam and evidence.</p>
+                <p>Browse the main leaderboard to see confirmed scammers or check the pending nominations section for recent submissions that are still gathering community votes.</p>
               </div>
               
               <div>
                 <h3 className="text-xl font-semibold mb-2">Voting and Signing</h3>
-                <p>You can vote on pending nominations to help them reach the main leaderboard. For confirmed scammers, you can sign the lawsuit petition if you have evidence or have been affected by their actions.</p>
+                <p>You can vote on pending nominations to help them reach the investigation threshold. For confirmed scammers, your signature strengthens our legal case against them.</p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold mb-2">Submitting Nominations</h3>
-                <p>When submitting a new nomination, provide as much detail as possible, including:</p>
-                <ul className="list-disc ml-6 mt-2">
-                  <li>Wallet addresses involved</li>
-                  <li>Transaction records</li>
-                  <li>Screenshots of communications</li>
-                  <li>Social media evidence</li>
-                  <li>Timeline of events</li>
-                </ul>
+                <h3 className="text-xl font-semibold mb-2">Making Nominations</h3>
+                <p>When submitting a new nomination, provide basic information about the suspected scammer. Our team will handle the detailed investigation and evidence gathering once the nomination reaches 500 votes.</p>
               </div>
             </div>
           </section>
