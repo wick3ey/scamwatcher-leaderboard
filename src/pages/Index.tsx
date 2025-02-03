@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const [scammers, setScammers] = useState([]);
