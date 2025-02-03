@@ -9,10 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SignLawsuitDialog } from "./SignLawsuitDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ScammerCardProps {
   name: string;
@@ -40,9 +41,30 @@ const ScammerCard = ({
   tokenName
 }: ScammerCardProps) => {
   const [showLawsuitDialog, setShowLawsuitDialog] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [hasSignedLawsuit, setHasSignedLawsuit] = useState(false);
   const { session, signIn } = useAuth();
   const { toast } = useToast();
   const signatureProgress = (lawsuitSignatures / targetSignatures) * 100;
+
+  useEffect(() => {
+    const checkUserActions = async () => {
+      if (!session?.user) return;
+
+      const { data: userActions } = await supabase
+        .from('user_actions')
+        .select('action_type')
+        .eq('user_id', session.user.id)
+        .eq('scammer_id', rank);
+
+      if (userActions) {
+        setHasVoted(userActions.some(action => action.action_type === 'vote'));
+        setHasSignedLawsuit(userActions.some(action => action.action_type === 'lawsuit'));
+      }
+    };
+
+    checkUserActions();
+  }, [session, rank]);
 
   const handleAction = async (action: 'vote' | 'lawsuit') => {
     if (!session) {
@@ -54,16 +76,54 @@ const ScammerCard = ({
       return;
     }
 
-    if (action === 'vote') {
-      onVote();
+    if (action === 'vote' && hasVoted) {
       toast({
-        title: "Vote recorded",
-        description: "Thank you for voting!",
+        title: "Already voted",
+        description: "You have already voted for this scammer",
       });
-    } else {
-      setShowLawsuitDialog(true);
+      return;
+    }
+
+    if (action === 'lawsuit' && hasSignedLawsuit) {
+      toast({
+        title: "Already signed",
+        description: "You have already signed the lawsuit for this scammer",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_actions')
+        .insert({
+          user_id: session.user.id,
+          scammer_id: rank,
+          action_type: action
+        });
+
+      if (error) throw error;
+
+      if (action === 'vote') {
+        setHasVoted(true);
+        onVote();
+        toast({
+          title: "Vote recorded",
+          description: "Thank you for voting!",
+        });
+      } else {
+        setShowLawsuitDialog(true);
+      }
+    } catch (error: any) {
+      console.error(`Error recording ${action}:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to record ${action}. Please try again.`,
+        variant: "destructive",
+      });
     }
   };
+
+  // ... keep existing code (JSX for the card content)
 
   return (
     <>
@@ -153,21 +213,27 @@ const ScammerCard = ({
           <div className="flex gap-2">
             <Button 
               onClick={() => handleAction('vote')} 
-              variant="secondary" 
+              variant={hasVoted ? "secondary" : "default"}
               size="sm"
-              className="transition-all duration-300 hover:bg-primary hover:text-white"
+              className={`transition-all duration-300 ${
+                hasVoted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
+              }`}
+              disabled={hasVoted}
             >
               <ArrowUp className="mr-2 h-4 w-4" />
-              Vote Up
+              {hasVoted ? 'Voted' : 'Vote Up'}
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="transition-all duration-300 hover:bg-primary hover:text-white"
+              className={`transition-all duration-300 ${
+                hasSignedLawsuit ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
+              }`}
               onClick={() => handleAction('lawsuit')}
+              disabled={hasSignedLawsuit}
             >
               <GavelIcon className="mr-2 h-4 w-4" />
-              Sign Lawsuit
+              {hasSignedLawsuit ? 'Signed' : 'Sign Lawsuit'}
             </Button>
           </div>
         </CardFooter>

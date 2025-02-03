@@ -3,6 +3,7 @@ import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
 import { Award, AlertTriangle, Users, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
+import { UserMenu } from "@/components/UserMenu";
 
 const Index = () => {
   const [scammers, setScammers] = useState([]);
@@ -35,6 +36,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <UserMenu />
+        </div>
+        
         <header className="text-center mb-12 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Web3 Scammer Leaderboard
