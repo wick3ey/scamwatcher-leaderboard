@@ -2,6 +2,7 @@ import { useState } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
 import { Award, AlertTriangle, Users, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Mockdata för demonstration
 const initialScammers = [
@@ -69,6 +70,12 @@ const Index = () => {
             A community-driven initiative to identify and track Web3 scammers. 
             Help protect others by voting and nominating known scammers.
           </p>
+          <Link 
+            to="/nominations" 
+            className="inline-block mt-4 text-primary hover:text-primary/80 transition-colors"
+          >
+            View Pending Nominations →
+          </Link>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in">
