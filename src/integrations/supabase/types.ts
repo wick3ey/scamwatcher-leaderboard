@@ -32,39 +32,54 @@ export type Database = {
       }
       nominations: {
         Row: {
+          admin_notes: string | null
           amount_stolen_usd: number
           created_at: string
           id: string
+          is_pinned: boolean | null
+          last_modified_at: string | null
+          last_modified_by: string | null
           lawsuit_signatures: number | null
           name: string
           nominated_by: string | null
           scam_description: string
+          status: string | null
           target_signatures: number | null
           token_name: string | null
           twitter_handle: string
           votes: number | null
         }
         Insert: {
+          admin_notes?: string | null
           amount_stolen_usd: number
           created_at?: string
           id?: string
+          is_pinned?: boolean | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           lawsuit_signatures?: number | null
           name: string
           nominated_by?: string | null
           scam_description: string
+          status?: string | null
           target_signatures?: number | null
           token_name?: string | null
           twitter_handle: string
           votes?: number | null
         }
         Update: {
+          admin_notes?: string | null
           amount_stolen_usd?: number
           created_at?: string
           id?: string
+          is_pinned?: boolean | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           lawsuit_signatures?: number | null
           name?: string
           nominated_by?: string | null
           scam_description?: string
+          status?: string | null
           target_signatures?: number | null
           token_name?: string | null
           twitter_handle?: string
