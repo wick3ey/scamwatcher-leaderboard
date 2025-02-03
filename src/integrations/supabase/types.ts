@@ -36,6 +36,7 @@ export type Database = {
           amount_stolen_usd: number
           created_at: string
           id: string
+          image_url: string | null
           is_pinned: boolean | null
           last_modified_at: string | null
           last_modified_by: string | null
@@ -54,6 +55,7 @@ export type Database = {
           amount_stolen_usd: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_pinned?: boolean | null
           last_modified_at?: string | null
           last_modified_by?: string | null
@@ -72,6 +74,7 @@ export type Database = {
           amount_stolen_usd?: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_pinned?: boolean | null
           last_modified_at?: string | null
           last_modified_by?: string | null

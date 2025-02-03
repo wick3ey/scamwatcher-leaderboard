@@ -10,13 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "./ImageUpload";
 import { 
   ArrowUp, 
   ArrowDown, 
   Pin, 
   Trash2,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Image
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -39,11 +41,22 @@ export function TopScammers() {
 
   useEffect(() => {
     loadScammers();
-  }, []); // Load data when component mounts
+  }, []); 
 
   const loadScammers = async () => {
     try {
       console.log("Loading approved scammers...");
+      const { data: adminCheck } = await supabase
+        .from('admin_users')
+        .select('*')
+        .single();
+
+      if (!adminCheck) {
+        console.error("User is not an admin");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('nominations')
         .select('*')
@@ -51,10 +64,7 @@ export function TopScammers() {
         .order('is_pinned', { ascending: false })
         .order('votes', { ascending: false });
 
-      if (error) {
-        console.error("Error loading scammers:", error);
-        throw error;
-      }
+      if (error) throw error;
       
       console.log("Loaded scammers:", data);
       setScammers(data || []);
@@ -67,6 +77,35 @@ export function TopScammers() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (id: string, imageUrl: string) => {
+    try {
+      const { error } = await supabase
+        .from('nominations')
+        .update({ 
+          image_url: imageUrl,
+          last_modified_at: new Date().toISOString(),
+          last_modified_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Image updated successfully",
+      });
+
+      loadScammers();
+    } catch (error: any) {
+      console.error("Error updating image:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 
@@ -194,6 +233,7 @@ export function TopScammers() {
             <TableHeader>
               <TableRow>
                 <TableHead>Rank</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Twitter</TableHead>
                 <TableHead>Votes</TableHead>
@@ -205,6 +245,22 @@ export function TopScammers() {
               {scammers.map((scammer, index) => (
                 <TableRow key={scammer.id}>
                   <TableCell>#{index + 1}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {scammer.image_url ? (
+                        <img 
+                          src={scammer.image_url} 
+                          alt={scammer.name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                          <Image className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <ImageUpload onUploadComplete={(url) => handleImageUpload(scammer.id, url)} />
+                    </div>
+                  </TableCell>
                   <TableCell className="font-medium">{scammer.name}</TableCell>
                   <TableCell>@{scammer.twitter_handle}</TableCell>
                   <TableCell>{scammer.votes}</TableCell>

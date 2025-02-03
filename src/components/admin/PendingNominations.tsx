@@ -20,7 +20,7 @@ export function PendingNominations() {
 
   useEffect(() => {
     loadPendingNominations();
-  }, []); // Load data when component mounts
+  }, []);
 
   const loadPendingNominations = async () => {
     try {
@@ -32,6 +32,11 @@ export function PendingNominations() {
 
       if (!adminCheck) {
         console.error("User is not an admin");
+        toast({
+          title: "Access Denied",
+          description: "You do not have permission to view pending nominations",
+          variant: "destructive"
+        });
         setLoading(false);
         return;
       }
@@ -42,10 +47,7 @@ export function PendingNominations() {
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Error loading nominations:", error);
-        throw error;
-      }
+      if (error) throw error;
       
       console.log("Loaded nominations:", data);
       setNominations(data || []);
