@@ -70,18 +70,6 @@
   @apply absolute inset-0 rounded-xl p-[2px] bg-gradient-to-r from-[#9b87f5] via-[#D946EF] to-[#F97316] -z-10 animate-gradient;
 }
 
-@keyframes animate-gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 .animate-text {
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
