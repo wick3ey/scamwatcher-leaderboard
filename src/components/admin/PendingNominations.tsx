@@ -28,7 +28,7 @@ export function PendingNominations() {
       const { data: adminCheck } = await supabase
         .from('admin_users')
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (!adminCheck) {
         console.error("User is not an admin");
@@ -47,7 +47,10 @@ export function PendingNominations() {
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching nominations:", error);
+        throw error;
+      }
       
       console.log("Loaded nominations:", data);
       setNominations(data || []);
@@ -81,6 +84,7 @@ export function PendingNominations() {
         description: `Nomination ${status}`,
       });
 
+      // Refresh the nominations list
       loadPendingNominations();
     } catch (error: any) {
       console.error("Error updating status:", error);
