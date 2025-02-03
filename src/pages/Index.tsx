@@ -45,15 +45,17 @@ const Index = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Web3 Scammer Leaderboard
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
             A community-driven initiative to identify and track Web3 scammers. 
             Help protect others by voting and nominating known scammers.
           </p>
+          
           <Link 
             to="/nominations" 
-            className="inline-block mt-4 text-primary hover:text-primary/80 transition-colors"
+            className="glass-card hover-scale inline-flex items-center gap-2 px-6 py-3 text-lg font-semibold text-primary"
           >
-            View Pending Nominations →
+            View Pending Nominations
+            <span className="text-2xl">→</span>
           </Link>
         </header>
 
