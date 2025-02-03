@@ -25,6 +25,17 @@ export function PendingNominations() {
   const loadPendingNominations = async () => {
     try {
       console.log("Loading pending nominations...");
+      const { data: adminCheck } = await supabase
+        .from('admin_users')
+        .select('*')
+        .single();
+
+      if (!adminCheck) {
+        console.error("User is not an admin");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('nominations')
         .select('*')
