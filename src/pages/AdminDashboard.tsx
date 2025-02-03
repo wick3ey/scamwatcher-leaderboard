@@ -5,14 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Card,
   CardContent,
   CardDescription,
@@ -22,14 +14,24 @@ import {
 import { ScammerEditForm } from "@/components/admin/ScammerEditForm";
 import { 
   Trash2, 
-  Edit2, 
-  ArrowUpCircle, 
-  ArrowDownCircle,
+  Edit2,
   Settings,
   Save,
   Plus,
-  Minus
+  Minus,
+  Shield,
+  AlertTriangle
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const AdminDashboard = () => {
   const { session } = useAuth();
@@ -38,175 +40,186 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [nominations, setNominations] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [scammerToDelete, setScammerToDelete] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAdminStatus();
-    loadData();
+    checkAdminAccess();
   }, [session]);
 
-  const checkAdminStatus = async () => {
-    if (!session?.user) {
+  const checkAdminAccess = async () => {
+    if (!session?.user?.email) {
       navigate('/');
       return;
     }
 
-    const { data: adminData } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('email', session.user.email)
-      .single();
+    try {
+      const { data: adminData, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', session.user.email)
+        .single();
 
-    if (!adminData) {
+      if (error || !adminData || session.user.email !== 'snowden728@gmail.com') {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access this page.",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      loadData();
+    } catch (error) {
+      console.error('Error checking admin access:', error);
       navigate('/');
-      return;
     }
-
-    setIsAdmin(true);
   };
 
   const loadData = async () => {
-    const { data, error } = await supabase
-      .from('nominations')
-      .select('*')
-      .order('votes', { ascending: false });
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('nominations')
+        .select('*')
+        .order('votes', { ascending: false });
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Error Loading Data",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setNominations(data || []);
+    } catch (error: any) {
       toast({
-        title: "Fel vid laddning av data",
-        description: error.message,
+        title: "Error",
+        description: "Failed to load nominations",
         variant: "destructive"
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    setNominations(data || []);
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase
-      .from('nominations')
-      .delete()
-      .eq('id', id);
+    setScammerToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
-    if (error) {
+  const confirmDelete = async () => {
+    if (!scammerToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('nominations')
+        .delete()
+        .eq('id', scammerToDelete);
+
+      if (error) throw error;
+
+      await loadData();
       toast({
-        title: "Fel vid borttagning",
+        title: "Deleted Successfully",
+        description: "The scammer has been removed from the system.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
         description: error.message,
         variant: "destructive"
       });
-      return;
+    } finally {
+      setDeleteDialogOpen(false);
+      setScammerToDelete(null);
     }
-
-    await loadData();
-    toast({
-      title: "Borttagen",
-      description: "Scammern har tagits bort från systemet.",
-    });
   };
 
   const handleSave = async (updatedScammer: any) => {
-    const { error } = await supabase
-      .from('nominations')
-      .update({
-        name: updatedScammer.name,
-        twitter_handle: updatedScammer.twitterHandle,
-        scam_description: updatedScammer.scamDescription,
-        amount_stolen_usd: updatedScammer.amountStolenUSD,
-        token_name: updatedScammer.tokenName,
-        votes: updatedScammer.votes,
-        lawsuit_signatures: updatedScammer.lawsuitSignatures,
-        target_signatures: updatedScammer.targetSignatures
-      })
-      .eq('id', updatedScammer.id);
+    try {
+      const { error } = await supabase
+        .from('nominations')
+        .update({
+          name: updatedScammer.name,
+          twitter_handle: updatedScammer.twitterHandle,
+          scam_description: updatedScammer.scamDescription,
+          amount_stolen_usd: updatedScammer.amountStolenUSD,
+          token_name: updatedScammer.tokenName,
+          votes: updatedScammer.votes,
+          lawsuit_signatures: updatedScammer.lawsuitSignatures,
+          target_signatures: updatedScammer.targetSignatures
+        })
+        .eq('id', updatedScammer.id);
 
-    if (error) {
+      if (error) throw error;
+
+      setEditingId(null);
+      await loadData();
       toast({
-        title: "Fel vid uppdatering",
+        title: "Changes Saved",
+        description: "The information has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
         description: error.message,
         variant: "destructive"
       });
-      return;
     }
-
-    setEditingId(null);
-    await loadData();
-    toast({
-      title: "Uppdaterad",
-      description: "Informationen har sparats.",
-    });
   };
 
-  const adjustSignatures = async (id: string, increment: boolean, amount: number = 100) => {
+  const adjustValue = async (id: string, field: string, increment: boolean, amount: number = 100) => {
     const scammer = nominations.find(n => n.id === id);
     if (!scammer) return;
 
-    const newSignatures = increment 
-      ? scammer.lawsuit_signatures + amount 
-      : Math.max(0, scammer.lawsuit_signatures - amount);
+    const newValue = increment 
+      ? (scammer[field] || 0) + amount 
+      : Math.max(0, (scammer[field] || 0) - amount);
 
-    const { error } = await supabase
-      .from('nominations')
-      .update({ lawsuit_signatures: newSignatures })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('nominations')
+        .update({ [field]: newValue })
+        .eq('id', id);
 
-    if (error) {
+      if (error) throw error;
+
+      await loadData();
       toast({
-        title: "Fel vid uppdatering",
+        title: "Updated Successfully",
+        description: `${field.replace('_', ' ')} has been ${increment ? 'increased' : 'decreased'} by ${amount}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
         description: error.message,
         variant: "destructive"
       });
-      return;
     }
-
-    await loadData();
-    toast({
-      title: "Signaturer uppdaterade",
-      description: `Antalet signaturer har ${increment ? 'ökats' : 'minskats'} med ${amount}.`,
-    });
   };
 
-  const adjustVotes = async (id: string, increment: boolean, amount: number = 100) => {
-    const scammer = nominations.find(n => n.id === id);
-    if (!scammer) return;
-
-    const newVotes = increment 
-      ? scammer.votes + amount 
-      : Math.max(0, scammer.votes - amount);
-
-    const { error } = await supabase
-      .from('nominations')
-      .update({ votes: newVotes })
-      .eq('id', id);
-
-    if (error) {
-      toast({
-        title: "Fel vid uppdatering",
-        description: error.message,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    await loadData();
-    toast({
-      title: "Röster uppdaterade",
-      description: `Antalet röster har ${increment ? 'ökats' : 'minskats'} med ${amount}.`,
-    });
-  };
-
-  if (!isAdmin) {
+  if (!isAdmin || loading) {
     return null;
   }
 
   return (
     <div className="container mx-auto p-6 space-y-8">
-      <Card>
+      <Card className="border-primary/20">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Admin Dashboard</CardTitle>
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-primary" />
+                Admin Dashboard
+              </CardTitle>
               <CardDescription>
-                Hantera scammers, signaturer och röster. Endast auktoriserade administratörer har tillgång till dessa kontroller.
+                Secure admin controls - Only authorized administrators have access to these controls.
               </CardDescription>
             </div>
             <Settings className="h-6 w-6 text-muted-foreground" />
@@ -216,12 +229,12 @@ const AdminDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Hantera Scammers</CardTitle>
+          <CardTitle>Manage Scammers</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             {nominations.map((scammer) => (
-              <Card key={scammer.id} className="p-4">
+              <Card key={scammer.id} className="p-4 border-primary/10 hover:border-primary/20 transition-colors">
                 {editingId === scammer.id ? (
                   <ScammerEditForm
                     scammer={{
@@ -263,22 +276,22 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Röster: {scammer.votes}</span>
+                          <span className="text-sm font-medium">Votes: {scammer.votes}</span>
                           <div className="flex gap-1">
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => adjustVotes(scammer.id, true)}
+                              onClick={() => adjustValue(scammer.id, 'votes', true)}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => adjustVotes(scammer.id, false)}
+                              onClick={() => adjustValue(scammer.id, 'votes', false)}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
@@ -289,20 +302,20 @@ const AdminDashboard = () => {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">
-                            Signaturer: {scammer.lawsuit_signatures} / {scammer.target_signatures}
+                            Signatures: {scammer.lawsuit_signatures} / {scammer.target_signatures}
                           </span>
                           <div className="flex gap-1">
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => adjustSignatures(scammer.id, true)}
+                              onClick={() => adjustValue(scammer.id, 'lawsuit_signatures', true)}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => adjustSignatures(scammer.id, false)}
+                              onClick={() => adjustValue(scammer.id, 'lawsuit_signatures', false)}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
@@ -312,8 +325,8 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="text-sm text-muted-foreground">
-                      <p><strong>Beskrivning:</strong> {scammer.scam_description}</p>
-                      <p><strong>Stulen summa:</strong> ${scammer.amount_stolen_usd.toLocaleString()}</p>
+                      <p><strong>Description:</strong> {scammer.scam_description}</p>
+                      <p><strong>Amount Stolen:</strong> ${scammer.amount_stolen_usd.toLocaleString()}</p>
                       {scammer.token_name && (
                         <p><strong>Token:</strong> {scammer.token_name}</p>
                       )}
@@ -322,9 +335,34 @@ const AdminDashboard = () => {
                 )}
               </Card>
             ))}
+
+            {nominations.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <AlertTriangle className="mx-auto h-12 w-12 mb-4 text-muted-foreground" />
+                <p>No scammers found in the database.</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the scammer
+              and all associated data from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
