@@ -5,6 +5,7 @@ import { Award, AlertTriangle, Users, DollarSign, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [scammers, setScammers] = useState([]);
@@ -37,7 +38,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <Link to="/about">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              About Us
+            </Button>
+          </Link>
           <UserMenu />
         </div>
         
