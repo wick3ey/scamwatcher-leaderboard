@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -14,8 +14,7 @@ import {
   ArrowUp, 
   ArrowDown, 
   Pin, 
-  Trash2, 
-  Edit2,
+  Trash2,
   AlertTriangle,
   Loader2
 } from "lucide-react";
@@ -38,8 +37,13 @@ export function TopScammers() {
   const [scammerToDelete, setScammerToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    loadScammers();
+  }, []); // Load data when component mounts
+
   const loadScammers = async () => {
     try {
+      console.log("Loading approved scammers...");
       const { data, error } = await supabase
         .from('nominations')
         .select('*')
@@ -47,9 +51,15 @@ export function TopScammers() {
         .order('is_pinned', { ascending: false })
         .order('votes', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error loading scammers:", error);
+        throw error;
+      }
+      
+      console.log("Loaded scammers:", data);
       setScammers(data || []);
     } catch (error: any) {
+      console.error("Error in loadScammers:", error);
       toast({
         title: "Error",
         description: "Could not load scammers",
@@ -83,6 +93,7 @@ export function TopScammers() {
 
       loadScammers();
     } catch (error: any) {
+      console.error("Error deleting scammer:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -114,6 +125,7 @@ export function TopScammers() {
 
       loadScammers();
     } catch (error: any) {
+      console.error("Error updating pin status:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -145,6 +157,7 @@ export function TopScammers() {
 
       loadScammers();
     } catch (error: any) {
+      console.error("Error updating votes:", error);
       toast({
         title: "Error",
         description: error.message,

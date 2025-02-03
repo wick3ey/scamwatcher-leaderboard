@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,17 +18,28 @@ export function PendingNominations() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  useEffect(() => {
+    loadPendingNominations();
+  }, []); // Load data when component mounts
+
   const loadPendingNominations = async () => {
     try {
+      console.log("Loading pending nominations...");
       const { data, error } = await supabase
         .from('nominations')
         .select('*')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error loading nominations:", error);
+        throw error;
+      }
+      
+      console.log("Loaded nominations:", data);
       setNominations(data || []);
     } catch (error: any) {
+      console.error("Error in loadPendingNominations:", error);
       toast({
         title: "Error",
         description: "Could not load pending nominations",
@@ -59,6 +70,7 @@ export function PendingNominations() {
 
       loadPendingNominations();
     } catch (error: any) {
+      console.error("Error updating status:", error);
       toast({
         title: "Error",
         description: error.message,
