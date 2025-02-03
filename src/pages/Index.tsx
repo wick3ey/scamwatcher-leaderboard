@@ -49,6 +49,12 @@ const Index = () => {
             A community-driven initiative to identify and track Web3 scammers. 
             Help protect others by voting and nominating known scammers.
           </p>
+          <Link 
+            to="/nominations" 
+            className="inline-block mt-4 text-primary hover:text-primary/80 transition-colors"
+          >
+            View Pending Nominations →
+          </Link>
         </header>
 
         <Alert className="mb-8 border-primary/20 bg-primary/5">
