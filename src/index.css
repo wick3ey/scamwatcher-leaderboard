@@ -37,49 +37,33 @@
   }
 }
 
-.glass-card {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl transition-all duration-300;
-}
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl transition-all duration-300;
+  }
 
-.hover-scale {
-  @apply transition-transform duration-200 hover:scale-105;
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#9b87f5] via-[#D946EF] to-[#F97316] animate-text;
+  }
+
+  .gradient-border {
+    @apply relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl p-[2px] bg-gradient-to-r from-[#9b87f5] via-[#D946EF] to-[#F97316] -z-10 animate-gradient;
+  }
 }
 
 @keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#9b87f5] via-[#D946EF] to-[#F97316] animate-text;
-}
-
-.gradient-border {
-  @apply relative;
-}
-
-.gradient-border::before {
-  content: '';
-  @apply absolute inset-0 rounded-xl p-[2px] bg-gradient-to-r from-[#9b87f5] via-[#D946EF] to-[#F97316] -z-10 animate-gradient;
-}
-
-@keyframes animate-gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .animate-text {
@@ -107,13 +91,7 @@
 }
 
 @keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 5px rgba(155, 135, 245, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(155, 135, 245, 0.6);
-  }
-  100% {
-    box-shadow: 0 0 5px rgba(155, 135, 245, 0.2);
-  }
+  0% { box-shadow: 0 0 5px rgba(155, 135, 245, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(155, 135, 245, 0.6); }
+  100% { box-shadow: 0 0 5px rgba(155, 135, 245, 0.2); }
 }
