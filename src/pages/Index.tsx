@@ -125,7 +125,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-
+        
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center justify-between mb-6">
@@ -159,6 +159,8 @@ const Index = () => {
             <NominateScammer />
           </div>
         </div>
+
+        <Footer />
       </div>
     </div>
   );

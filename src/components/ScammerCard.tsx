@@ -1,4 +1,4 @@
-import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign, Coins } from "lucide-react";
+import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign, Coins, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +14,7 @@ import { SignLawsuitDialog } from "./SignLawsuitDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface ScammerCardProps {
   name: string;
@@ -43,6 +44,7 @@ const ScammerCard = ({
   const [showLawsuitDialog, setShowLawsuitDialog] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [hasSignedLawsuit, setHasSignedLawsuit] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { session, signIn } = useAuth();
   const { toast } = useToast();
   const signatureProgress = (lawsuitSignatures / targetSignatures) * 100;
@@ -61,6 +63,15 @@ const ScammerCard = ({
         setHasVoted(userActions.some(action => action.action_type === 'vote'));
         setHasSignedLawsuit(userActions.some(action => action.action_type === 'lawsuit'));
       }
+
+      // Check if user is admin
+      const { data: adminData } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', session.user.email)
+        .single();
+
+      setIsAdmin(!!adminData);
     };
 
     checkUserActions();
@@ -76,7 +87,7 @@ const ScammerCard = ({
       return;
     }
 
-    if (action === 'vote' && hasVoted) {
+    if (action === 'vote' && hasVoted && !isAdmin) {
       toast({
         title: "Already voted",
         description: "You have already voted for this scammer",
@@ -84,7 +95,7 @@ const ScammerCard = ({
       return;
     }
 
-    if (action === 'lawsuit' && hasSignedLawsuit) {
+    if (action === 'lawsuit' && hasSignedLawsuit && !isAdmin) {
       toast({
         title: "Already signed",
         description: "You have already signed the lawsuit for this scammer",
@@ -93,15 +104,17 @@ const ScammerCard = ({
     }
 
     try {
-      const { error } = await supabase
-        .from('user_actions')
-        .insert({
-          user_id: session.user.id,
-          scammer_id: rank,
-          action_type: action
-        });
+      if (!isAdmin) {
+        const { error } = await supabase
+          .from('user_actions')
+          .insert({
+            user_id: session.user.id,
+            scammer_id: rank,
+            action_type: action
+          });
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       if (action === 'vote') {
         setHasVoted(true);
@@ -122,8 +135,6 @@ const ScammerCard = ({
       });
     }
   };
-
-  // ... keep existing code (JSX for the card content)
 
   return (
     <>
@@ -155,7 +166,12 @@ const ScammerCard = ({
                 </CardDescription>
               </div>
             </div>
-            <AlertCircle className="text-primary h-6 w-6 animate-pulse" />
+            <div className="flex items-center gap-2">
+              <Badge variant={votes >= 500 ? "destructive" : "secondary"}>
+                {votes >= 500 ? "Confirmed Scammer" : "Potential Scammer"}
+              </Badge>
+              <AlertCircle className="text-primary h-6 w-6 animate-pulse" />
+            </div>
           </div>
         </CardHeader>
         
@@ -213,27 +229,27 @@ const ScammerCard = ({
           <div className="flex gap-2">
             <Button 
               onClick={() => handleAction('vote')} 
-              variant={hasVoted ? "secondary" : "default"}
+              variant={hasVoted && !isAdmin ? "secondary" : "default"}
               size="sm"
               className={`transition-all duration-300 ${
-                hasVoted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
+                hasVoted && !isAdmin ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
               }`}
-              disabled={hasVoted}
+              disabled={hasVoted && !isAdmin}
             >
               <ArrowUp className="mr-2 h-4 w-4" />
-              {hasVoted ? 'Voted' : 'Vote Up'}
+              {hasVoted && !isAdmin ? 'Voted' : 'Vote Up'}
             </Button>
             <Button
               variant="outline"
               size="sm"
               className={`transition-all duration-300 ${
-                hasSignedLawsuit ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
+                hasSignedLawsuit && !isAdmin ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
               }`}
               onClick={() => handleAction('lawsuit')}
-              disabled={hasSignedLawsuit}
+              disabled={hasSignedLawsuit && !isAdmin}
             >
               <GavelIcon className="mr-2 h-4 w-4" />
-              {hasSignedLawsuit ? 'Signed' : 'Sign Lawsuit'}
+              {hasSignedLawsuit && !isAdmin ? 'Signed' : 'Sign Lawsuit'}
             </Button>
           </div>
         </CardFooter>
