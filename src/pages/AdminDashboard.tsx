@@ -12,6 +12,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ScammerEditForm } from "@/components/admin/ScammerEditForm";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { 
   Trash2, 
   Edit2,
@@ -20,7 +28,8 @@ import {
   Plus,
   Minus,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import {
   AlertDialog,
@@ -43,6 +52,7 @@ const AdminDashboard = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [scammerToDelete, setScammerToDelete] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     checkAdminAccess();
@@ -55,16 +65,16 @@ const AdminDashboard = () => {
     }
 
     try {
-      const { data: adminData, error } = await supabase
+      const { data: adminData, error: adminError } = await supabase
         .from('admin_users')
         .select('*')
         .eq('email', session.user.email)
         .single();
 
-      if (error || !adminData || session.user.email !== 'snowden728@gmail.com') {
+      if (adminError || !adminData || session.user.email !== 'snowden728@gmail.com') {
         toast({
-          title: "Access Denied",
-          description: "You don't have permission to access this page.",
+          title: "Åtkomst nekad",
+          description: "Du har inte behörighet att komma åt denna sida.",
           variant: "destructive",
         });
         navigate('/');
@@ -81,15 +91,17 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('nominations')
         .select('*')
-        .order('votes', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
+        setError(error.message);
         toast({
-          title: "Error Loading Data",
+          title: "Fel vid laddning av data",
           description: error.message,
           variant: "destructive"
         });
@@ -98,9 +110,10 @@ const AdminDashboard = () => {
 
       setNominations(data || []);
     } catch (error: any) {
+      setError(error.message);
       toast({
-        title: "Error",
-        description: "Failed to load nominations",
+        title: "Fel",
+        description: "Kunde inte ladda nomineringar",
         variant: "destructive"
       });
     } finally {
@@ -126,12 +139,12 @@ const AdminDashboard = () => {
 
       await loadData();
       toast({
-        title: "Deleted Successfully",
-        description: "The scammer has been removed from the system.",
+        title: "Borttagen",
+        description: "Scammern har tagits bort från systemet.",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Fel",
         description: error.message,
         variant: "destructive"
       });
@@ -162,49 +175,19 @@ const AdminDashboard = () => {
       setEditingId(null);
       await loadData();
       toast({
-        title: "Changes Saved",
-        description: "The information has been updated successfully.",
+        title: "Ändringar sparade",
+        description: "Informationen har uppdaterats.",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Fel",
         description: error.message,
         variant: "destructive"
       });
     }
   };
 
-  const adjustValue = async (id: string, field: string, increment: boolean, amount: number = 100) => {
-    const scammer = nominations.find(n => n.id === id);
-    if (!scammer) return;
-
-    const newValue = increment 
-      ? (scammer[field] || 0) + amount 
-      : Math.max(0, (scammer[field] || 0) - amount);
-
-    try {
-      const { error } = await supabase
-        .from('nominations')
-        .update({ [field]: newValue })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      await loadData();
-      toast({
-        title: "Updated Successfully",
-        description: `${field.replace('_', ' ')} has been ${increment ? 'increased' : 'decreased'} by ${amount}.`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  if (!isAdmin || loading) {
+  if (!isAdmin) {
     return null;
   }
 
@@ -219,146 +202,128 @@ const AdminDashboard = () => {
                 Admin Dashboard
               </CardTitle>
               <CardDescription>
-                Secure admin controls - Only authorized administrators have access to these controls.
+                Säker admin-kontroll - Endast behöriga administratörer har tillgång till dessa kontroller.
               </CardDescription>
             </div>
-            <Settings className="h-6 w-6 text-muted-foreground" />
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={loadData}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Settings className="h-4 w-4" />
+              )}
+            </Button>
           </div>
         </CardHeader>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Manage Scammers</CardTitle>
+          <CardTitle>Hantera Scammers</CardTitle>
+          <CardDescription>
+            Här kan du se och hantera alla registrerade scammers i systemet.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {nominations.map((scammer) => (
-              <Card key={scammer.id} className="p-4 border-primary/10 hover:border-primary/20 transition-colors">
-                {editingId === scammer.id ? (
-                  <ScammerEditForm
-                    scammer={{
-                      id: scammer.id,
-                      name: scammer.name,
-                      twitterHandle: scammer.twitter_handle,
-                      scamDescription: scammer.scam_description,
-                      amountStolenUSD: scammer.amount_stolen_usd,
-                      tokenName: scammer.token_name,
-                      votes: scammer.votes,
-                      lawsuitSignatures: scammer.lawsuit_signatures,
-                      targetSignatures: scammer.target_signatures
-                    }}
-                    onSave={handleSave}
-                    onCancel={() => setEditingId(null)}
-                  />
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">{scammer.name}</h3>
-                        <p className="text-sm text-muted-foreground">@{scammer.twitter_handle}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setEditingId(scammer.id)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => handleDelete(scammer.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Votes: {scammer.votes}</span>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => adjustValue(scammer.id, 'votes', true)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => adjustValue(scammer.id, 'votes', false)}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-destructive">
+              <AlertTriangle className="mx-auto h-8 w-8 mb-2" />
+              <p>{error}</p>
+            </div>
+          ) : nominations.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertTriangle className="mx-auto h-12 w-12 mb-4" />
+              <p>Inga scammers hittades i databasen.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Namn</TableHead>
+                    <TableHead>Twitter</TableHead>
+                    <TableHead>Belopp (USD)</TableHead>
+                    <TableHead>Röster</TableHead>
+                    <TableHead>Signaturer</TableHead>
+                    <TableHead className="text-right">Åtgärder</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {nominations.map((scammer) => (
+                    <TableRow key={scammer.id}>
+                      <TableCell className="font-medium">{scammer.name}</TableCell>
+                      <TableCell>@{scammer.twitter_handle}</TableCell>
+                      <TableCell>${scammer.amount_stolen_usd.toLocaleString()}</TableCell>
+                      <TableCell>{scammer.votes}</TableCell>
+                      <TableCell>
+                        {scammer.lawsuit_signatures} / {scammer.target_signatures}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setEditingId(scammer.id)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDelete(scammer.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            Signatures: {scammer.lawsuit_signatures} / {scammer.target_signatures}
-                          </span>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => adjustValue(scammer.id, 'lawsuit_signatures', true)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => adjustValue(scammer.id, 'lawsuit_signatures', false)}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-sm text-muted-foreground">
-                      <p><strong>Description:</strong> {scammer.scam_description}</p>
-                      <p><strong>Amount Stolen:</strong> ${scammer.amount_stolen_usd.toLocaleString()}</p>
-                      {scammer.token_name && (
-                        <p><strong>Token:</strong> {scammer.token_name}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </Card>
-            ))}
-
-            {nominations.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <AlertTriangle className="mx-auto h-12 w-12 mb-4 text-muted-foreground" />
-                <p>No scammers found in the database.</p>
-              </div>
-            )}
-          </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {editingId && (
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle>Redigera Scammer</CardTitle>
+            <CardDescription>
+              Uppdatera information om scammern här.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScammerEditForm
+              scammer={nominations.find(s => s.id === editingId)}
+              onSave={handleSave}
+              onCancel={() => setEditingId(null)}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Är du säker?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the scammer
-              and all associated data from the database.
+              Denna åtgärd kan inte ångras. Detta kommer permanent ta bort scammern
+              och all tillhörande data från databasen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+              Ta bort
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
