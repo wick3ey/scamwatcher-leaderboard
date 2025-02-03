@@ -1,4 +1,4 @@
-import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign, Coins, Mail } from "lucide-react";
+import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
 interface ScammerCardProps {
+  id: string; // Add this line
   name: string;
   twitterHandle: string;
   scamDescription: string;
@@ -30,6 +31,7 @@ interface ScammerCardProps {
 }
 
 const ScammerCard = ({ 
+  id, // Add this line
   name, 
   twitterHandle, 
   scamDescription, 
@@ -57,7 +59,7 @@ const ScammerCard = ({
         .from('user_actions')
         .select('action_type')
         .eq('user_id', session.user.id)
-        .eq('scammer_id', rank);
+        .eq('scammer_id', id); // Use id instead of rank
 
       if (userActions) {
         setHasVoted(userActions.some(action => action.action_type === 'vote'));
@@ -75,7 +77,7 @@ const ScammerCard = ({
     };
 
     checkUserActions();
-  }, [session, rank]);
+  }, [session, id]); // Update dependency
 
   const handleAction = async (action: 'vote' | 'lawsuit') => {
     if (!session) {
@@ -109,7 +111,7 @@ const ScammerCard = ({
           .from('user_actions')
           .insert({
             user_id: session.user.id,
-            scammer_id: rank,
+            scammer_id: id, // Use id instead of rank
             action_type: action
           });
 
@@ -117,6 +119,14 @@ const ScammerCard = ({
       }
 
       if (action === 'vote') {
+        // Update the votes count in the nominations table
+        const { error: updateError } = await supabase
+          .from('nominations')
+          .update({ votes: votes + 1 })
+          .eq('id', id);
+
+        if (updateError) throw updateError;
+
         setHasVoted(true);
         onVote();
         toast({

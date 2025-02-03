@@ -7,32 +7,55 @@ import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [scammers, setScammers] = useState([]);
 
   useEffect(() => {
-    // Load leaderboard data from localStorage
-    const leaderboardData = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-    setScammers(leaderboardData);
+    const fetchScammers = async () => {
+      const { data, error } = await supabase
+        .from('nominations')
+        .select('*')
+        .eq('status', 'approved')
+        .order('votes', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching scammers:", error);
+        return;
+      }
+
+      setScammers(data || []);
+    };
+
+    fetchScammers();
   }, []);
 
-  const handleVote = (id: number) => {
+  const handleVote = async (id: string) => {
+    const { data, error } = await supabase
+      .from('nominations')
+      .select('votes')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching current votes:", error);
+      return;
+    }
+
     const updatedScammers = scammers.map(scammer => 
       scammer.id === id 
-        ? { ...scammer, votes: scammer.votes + 1 }
+        ? { ...scammer, votes: (scammer.votes || 0) + 1 }
         : scammer
     );
     
-    // Update localStorage and state
-    localStorage.setItem('leaderboard', JSON.stringify(updatedScammers));
     setScammers(updatedScammers);
   };
 
   const stats = {
-    totalVotes: scammers.reduce((acc, curr) => acc + curr.votes, 0),
+    totalVotes: scammers.reduce((acc, curr) => acc + (curr.votes || 0), 0),
     totalScammers: scammers.length,
-    totalStolenUSD: scammers.reduce((acc, curr) => acc + curr.amountStolenUSD, 0),
+    totalStolenUSD: scammers.reduce((acc, curr) => acc + (curr.amountStolenUSD || 0), 0),
     totalStolenSOL: scammers.reduce((acc, curr) => acc + (curr.amountStolenSOL || 0), 0)
   };
 
@@ -136,18 +159,20 @@ const Index = () => {
               </div>
             </div>
             <div className="space-y-6">
+
               {scammers
-                .sort((a, b) => b.votes - a.votes)
+                .sort((a, b) => (b.votes || 0) - (a.votes || 0))
                 .map((scammer, index) => (
                   <div key={scammer.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
                     <ScammerCard
                       {...scammer}
+                      id={scammer.id}
                       rank={index + 1}
                       onVote={() => handleVote(scammer.id)}
                     />
                   </div>
                 ))}
-              
+
               {scammers.length === 0 && (
                 <div className="text-center text-muted-foreground py-12">
                   No scammers on the leaderboard yet. Check the pending nominations!
@@ -166,5 +191,3 @@ const Index = () => {
     </div>
   );
 };
-
-export default Index;
