@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import { SignLawsuitDialog } from "./SignLawsuitDialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface ScammerCardProps {
   name: string;
@@ -56,6 +56,10 @@ const ScammerCard = ({
 
     if (action === 'vote') {
       onVote();
+      toast({
+        title: "Vote recorded",
+        description: "Thank you for voting!",
+      });
     } else {
       setShowLawsuitDialog(true);
     }

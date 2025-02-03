@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Send, DollarSign } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -27,36 +27,45 @@ const NominateScammer = () => {
       return;
     }
     
-    // Add the new nomination to pending nominations
-    const newNomination = {
-      id: Date.now(),
-      name,
-      twitterHandle: twitter.replace('@', ''),
-      scamDescription: description,
-      votes: 0,
-      amountStolenUSD: parseFloat(amountUSD),
-      tokenName,
-      lawsuitSignatures: 0,
-      targetSignatures: 1000
-    };
+    try {
+      // Add the new nomination to pending nominations
+      const newNomination = {
+        id: Date.now(),
+        name,
+        twitterHandle: twitter.replace('@', ''),
+        scamDescription: description,
+        votes: 0,
+        amountStolenUSD: parseFloat(amountUSD),
+        tokenName,
+        lawsuitSignatures: 0,
+        targetSignatures: 1000
+      };
 
-    // Get existing nominations from localStorage
-    const existingNominations = JSON.parse(localStorage.getItem('pendingNominations') || '[]');
-    
-    // Add new nomination
-    localStorage.setItem('pendingNominations', JSON.stringify([...existingNominations, newNomination]));
+      // Get existing nominations from localStorage
+      const existingNominations = JSON.parse(localStorage.getItem('pendingNominations') || '[]');
+      
+      // Add new nomination
+      localStorage.setItem('pendingNominations', JSON.stringify([...existingNominations, newNomination]));
 
-    toast({
-      title: "Nomination submitted",
-      description: "Thank you for helping keep the Web3 community safe!",
-    });
+      toast({
+        title: "Nomination submitted",
+        description: "Thank you for helping keep the Web3 community safe!",
+      });
 
-    // Reset form
-    setName("");
-    setTwitter("");
-    setDescription("");
-    setAmountUSD("");
-    setTokenName("");
+      // Reset form
+      setName("");
+      setTwitter("");
+      setDescription("");
+      setAmountUSD("");
+      setTokenName("");
+    } catch (error) {
+      console.error("Error submitting nomination:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit nomination. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
