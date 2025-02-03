@@ -33,71 +33,71 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 md:p-8 animate-fade-in">
+    <div className="min-h-screen bg-background p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 gradient-text">
+        <header className="text-center mb-12 animate-fade-in">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Web3 Scammer Leaderboard
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             A community-driven initiative to identify and track Web3 scammers. 
             Help protect others by voting and nominating known scammers.
           </p>
           <Link 
             to="/nominations" 
-            className="inline-block mt-4 text-[#9b87f5] hover:text-[#D946EF] transition-colors"
+            className="inline-block mt-4 text-primary hover:text-primary/80 transition-colors"
           >
             View Pending Nominations →
           </Link>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="glass-card p-6 flex items-center gap-4 hover:scale-105 transition-transform">
-            <div className="bg-gradient-to-br from-[#9b87f5]/20 to-[#D946EF]/20 p-3 rounded-full">
-              <Award className="h-6 w-6 text-[#9b87f5]" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in">
+          <div className="glass-card p-6 flex items-center gap-4">
+            <div className="bg-primary/20 p-3 rounded-full">
+              <Award className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Votes</p>
-              <p className="text-2xl font-bold gradient-text">{stats.totalVotes.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">Total Votes</p>
+              <p className="text-2xl font-bold">{stats.totalVotes.toLocaleString()}</p>
             </div>
           </div>
           
-          <div className="glass-card p-6 flex items-center gap-4 hover:scale-105 transition-transform">
-            <div className="bg-gradient-to-br from-[#9b87f5]/20 to-[#D946EF]/20 p-3 rounded-full">
-              <Users className="h-6 w-6 text-[#9b87f5]" />
+          <div className="glass-card p-6 flex items-center gap-4">
+            <div className="bg-primary/20 p-3 rounded-full">
+              <Users className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Known Scammers</p>
-              <p className="text-2xl font-bold gradient-text">{stats.totalScammers}</p>
+              <p className="text-sm text-muted-foreground">Known Scammers</p>
+              <p className="text-2xl font-bold">{stats.totalScammers}</p>
             </div>
           </div>
           
-          <div className="glass-card p-6 flex items-center gap-4 hover:scale-105 transition-transform">
-            <div className="bg-gradient-to-br from-[#9b87f5]/20 to-[#D946EF]/20 p-3 rounded-full">
-              <DollarSign className="h-6 w-6 text-[#9b87f5]" />
+          <div className="glass-card p-6 flex items-center gap-4">
+            <div className="bg-primary/20 p-3 rounded-full">
+              <DollarSign className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Stolen (USD)</p>
-              <p className="text-2xl font-bold gradient-text">${stats.totalStolenUSD.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">Total Stolen (USD)</p>
+              <p className="text-2xl font-bold">${stats.totalStolenUSD.toLocaleString()}</p>
             </div>
           </div>
 
-          <div className="glass-card p-6 flex items-center gap-4 hover:scale-105 transition-transform">
-            <div className="bg-gradient-to-br from-[#9b87f5]/20 to-[#D946EF]/20 p-3 rounded-full">
-              <AlertTriangle className="h-6 w-6 text-[#9b87f5]" />
+          <div className="glass-card p-6 flex items-center gap-4">
+            <div className="bg-primary/20 p-3 rounded-full">
+              <AlertTriangle className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total SOL Lost</p>
-              <p className="text-2xl font-bold gradient-text">{stats.totalStolenSOL.toLocaleString()} SOL</p>
+              <p className="text-sm text-muted-foreground">Total SOL Lost</p>
+              <p className="text-2xl font-bold">{stats.totalStolenSOL.toLocaleString()} SOL</p>
             </div>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold gradient-text">Top Scammers</h2>
-              <div className="text-sm text-gray-400">
+              <h2 className="text-2xl font-bold">Top Scammers</h2>
+              <div className="text-sm text-muted-foreground">
                 Sorted by most votes
               </div>
             </div>
@@ -105,7 +105,7 @@ const Index = () => {
               {scammers
                 .sort((a, b) => b.votes - a.votes)
                 .map((scammer, index) => (
-                  <div key={scammer.id} style={{ animationDelay: `${index * 150}ms` }}>
+                  <div key={scammer.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
                     <ScammerCard
                       {...scammer}
                       rank={index + 1}
@@ -115,7 +115,7 @@ const Index = () => {
                 ))}
               
               {scammers.length === 0 && (
-                <div className="text-center text-gray-400 py-12">
+                <div className="text-center text-muted-foreground py-12">
                   No scammers on the leaderboard yet. Check the pending nominations!
                 </div>
               )}
