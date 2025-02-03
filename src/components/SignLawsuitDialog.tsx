@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { GavelIcon } from "lucide-react";
+import { GavelIcon, Search } from "lucide-react";
 import countries from "../data/countries";
 
 interface SignLawsuitDialogProps {
@@ -26,7 +27,14 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
     amountLost: "",
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showCountryList, setShowCountryList] = useState(false);
+
   const { toast } = useToast();
+
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,29 +97,51 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
 
           <div className="space-y-2">
             <Label htmlFor="country">Country</Label>
-            <ScrollArea className="h-[200px] rounded-md border">
-              <div className="p-4">
-                {countries.map((country) => (
-                  <div
-                    key={country.code}
-                    className="flex items-center space-x-2 py-2 px-4 hover:bg-secondary/30 rounded cursor-pointer"
-                    onClick={() => {
-                      setFormData(prev => ({
-                        ...prev,
-                        country: country.name,
-                        phoneCode: country.phoneCode
-                      }));
-                    }}
-                  >
-                    <span className="w-8">{country.flag}</span>
-                    <span>{country.name}</span>
-                    <span className="text-muted-foreground ml-auto">
-                      {country.phoneCode}
-                    </span>
+            <div className="relative">
+              <Input
+                value={formData.country}
+                onClick={() => setShowCountryList(true)}
+                readOnly
+                placeholder="Select your country"
+                className="bg-secondary/30 cursor-pointer"
+              />
+              {showCountryList && (
+                <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg">
+                  <div className="p-2 border-b">
+                    <Input
+                      placeholder="Search countries..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-secondary/30"
+                      autoFocus
+                    />
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
+                  <ScrollArea className="h-[200px]">
+                    {filteredCountries.map((country) => (
+                      <div
+                        key={country.code}
+                        className="flex items-center space-x-2 p-2 hover:bg-secondary/30 cursor-pointer"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            country: country.name,
+                            phoneCode: country.phoneCode
+                          }));
+                          setShowCountryList(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <span className="w-8 text-xl">{country.flag}</span>
+                        <span>{country.name}</span>
+                        <span className="text-muted-foreground ml-auto">
+                          {country.phoneCode}
+                        </span>
+                      </div>
+                    ))}
+                  </ScrollArea>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
