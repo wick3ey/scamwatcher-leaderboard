@@ -18,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,23 +26,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("Auth state changed:", _event, session);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session) {
+        navigate("/");
+      } else {
+        navigate("/auth");
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      await supabase.auth.signOut();
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
+
+  // Don't render children until initial session is loaded
+  if (loading) {
+    return null; // Or a loading spinner
+  }
 
   return (
     <AuthContext.Provider value={{ session, user, signOut }}>
