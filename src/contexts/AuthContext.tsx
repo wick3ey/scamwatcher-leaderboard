@@ -42,17 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(false);
     });
 
-    // Clear session when window is closed or refreshed
-    const handleTabClose = () => {
-      supabase.auth.signOut();
-    };
-
-    window.addEventListener('beforeunload', handleTabClose);
-
-    return () => {
-      subscription.unsubscribe();
-      window.removeEventListener('beforeunload', handleTabClose);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async () => {
