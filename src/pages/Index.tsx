@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Nomination } from "@/types/nomination";
 
 const Index = () => {
@@ -20,6 +21,7 @@ const Index = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchScammers();
@@ -74,7 +76,16 @@ const Index = () => {
   };
 
   const handleVote = async (id: string, numeric_id: number) => {
-    if (isUpdating) return;
+    if (isUpdating || !user) {
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to vote.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
 
     try {
       setIsUpdating(true);
@@ -84,7 +95,8 @@ const Index = () => {
         .from('user_actions')
         .insert({
           scammer_id: numeric_id,
-          action_type: 'vote'
+          action_type: 'vote',
+          user_id: user.id
         });
 
       if (actionError) {
