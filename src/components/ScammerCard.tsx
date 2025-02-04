@@ -19,6 +19,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ScammerCardProps {
   id: string;
+  numeric_id: number;
   name: string;
   twitterHandle: string;
   scamDescription: string;
@@ -34,6 +35,7 @@ interface ScammerCardProps {
 
 const ScammerCard = ({ 
   id,
+  numeric_id,
   name, 
   twitterHandle, 
   scamDescription, 
@@ -59,11 +61,16 @@ const ScammerCard = ({
       if (!session?.user) return;
 
       // Check if user has already voted or signed
-      const { data: userActions } = await supabase
+      const { data: userActions, error } = await supabase
         .from('user_actions')
         .select('action_type')
         .eq('user_id', session.user.id)
-        .eq('scammer_id', Number(id));  // Convert UUID to number
+        .eq('scammer_id', numeric_id);
+
+      if (error) {
+        console.error('Error checking user actions:', error);
+        return;
+      }
 
       if (userActions) {
         setHasVoted(userActions.some(action => action.action_type === 'vote'));
@@ -81,7 +88,7 @@ const ScammerCard = ({
     };
 
     checkUserActions();
-  }, [session, id]);
+  }, [session, numeric_id]);
 
   const handleAction = async (action: 'vote' | 'lawsuit') => {
     if (!session) {
@@ -111,16 +118,17 @@ const ScammerCard = ({
 
     try {
       // Record user action
-      if (!isAdmin) {
-        const { error: actionError } = await supabase
-          .from('user_actions')
-          .insert({
-            user_id: session.user.id,
-            scammer_id: Number(id),  // Convert UUID to number
-            action_type: action
-          });
+      const { error: actionError } = await supabase
+        .from('user_actions')
+        .insert({
+          user_id: session.user.id,
+          scammer_id: numeric_id,
+          action_type: action
+        });
 
-        if (actionError) throw actionError;
+      if (actionError) {
+        console.error('Error recording action:', actionError);
+        throw actionError;
       }
 
       if (action === 'vote') {
@@ -130,7 +138,10 @@ const ScammerCard = ({
           .update({ votes: votes + 1 })
           .eq('id', id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Error updating votes:', updateError);
+          throw updateError;
+        }
 
         setHasVoted(true);
         onVote();

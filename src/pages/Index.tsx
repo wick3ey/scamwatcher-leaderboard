@@ -98,7 +98,6 @@ const Index = () => {
         </div>
         
         <div className="px-2 md:px-4 py-6">
-          {/* Clear and Prominent Button */}
           <div className="flex justify-center mb-8">
             <Link to="/nominations?status=pending">
               <Button 
@@ -151,6 +150,7 @@ const Index = () => {
                     >
                       <ScammerCard
                         {...scammer}
+                        numeric_id={scammer.numeric_id}
                         twitterHandle={scammer.twitter_handle}
                         scamDescription={scammer.scam_description}
                         amountStolenUSD={scammer.amount_stolen_usd}

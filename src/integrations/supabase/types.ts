@@ -49,6 +49,7 @@ export type Database = {
           token_name: string | null
           twitter_handle: string
           votes: number | null
+          numeric_id: number
         }
         Insert: {
           admin_notes?: string | null
@@ -68,6 +69,7 @@ export type Database = {
           token_name?: string | null
           twitter_handle: string
           votes?: number | null
+          numeric_id?: number
         }
         Update: {
           admin_notes?: string | null
@@ -87,6 +89,7 @@ export type Database = {
           token_name?: string | null
           twitter_handle?: string
           votes?: number | null
+          numeric_id?: number
         }
         Relationships: []
       }
@@ -234,19 +237,4 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
