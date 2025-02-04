@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { GavelIcon } from "lucide-react";
+import { GavelIcon, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Checkbox } from "@/components/ui/checkbox";
 import countries from "../data/countries";
 
 interface SignLawsuitDialogProps {
@@ -26,7 +27,7 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
     walletAddress: "",
     amountLost: "",
   });
-
+  const [legalConsent, setLegalConsent] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCountryList, setShowCountryList] = useState(false);
   const { session, signIn } = useAuth();
@@ -44,9 +45,18 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
       return;
     }
 
+    if (!legalConsent) {
+      toast({
+        title: "Legal consent required",
+        description: "Please read and accept the legal terms before proceeding",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Lawsuit signature submitted",
-      description: "Thank you for joining the lawsuit. We will contact you with further details.",
+      description: "Thank you for joining the lawsuit. Our legal team will contact you with further details.",
     });
     onOpenChange(false);
   };
@@ -200,6 +210,32 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
               min="0"
               step="0.01"
             />
+          </div>
+
+          <div className="space-y-4 p-4 bg-secondary/10 rounded-lg border border-secondary/20">
+            <div className="flex items-start space-x-2">
+              <Checkbox
+                id="legal-consent"
+                checked={legalConsent}
+                onCheckedChange={(checked) => setLegalConsent(checked as boolean)}
+                className="mt-1"
+              />
+              <div className="space-y-1">
+                <label
+                  htmlFor="legal-consent"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Legal Consent
+                </label>
+                <p className="text-sm text-muted-foreground">
+                  I understand and agree that by submitting this form:
+                  <br />• My information will be shared with our partnered law firm
+                  <br />• I may be contacted regarding the lawsuit
+                  <br />• All provided information is accurate and true
+                  <br />• I consent to participate in legal proceedings if necessary
+                </p>
+              </div>
+            </div>
           </div>
 
           <Button type="submit" className="w-full">

@@ -6,7 +6,7 @@ const Footer = () => {
     <footer className="mt-12 pb-6">
       <div className="glass-card p-8 flex flex-col items-center gap-6">
         <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
-          Följ oss på sociala medier
+          Follow us on social media
         </h3>
         
         <div className="flex justify-center gap-6">
@@ -78,8 +78,8 @@ const Footer = () => {
         </div>
 
         <div className="text-sm text-muted-foreground mt-4">
-          <p>© {new Date().getFullYear()} ScamWatcher. Alla rättigheter förbehållna.</p>
-          <p className="mt-1">Tillsammans mot bedrägerier i Web3-världen</p>
+          <p>© {new Date().getFullYear()} ScamWatcher. All rights reserved.</p>
+          <p className="mt-1">Together against fraud in the Web3 world</p>
         </div>
       </div>
     </footer>
