@@ -1,49 +1,61 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ScammerCard from "@/components/ScammerCard";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Nominations = () => {
   const [pendingNominations, setPendingNominations] = useState([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Load nominations from localStorage
-    const nominations = JSON.parse(localStorage.getItem('pendingNominations') || '[]');
-    setPendingNominations(nominations);
-  }, []);
+  // Fetch pending nominations
+  const fetchPendingNominations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('nominations')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
 
-  const handleVote = (id: number) => {
-    const updatedNominations = pendingNominations.map(nomination => {
-      if (nomination.id === id) {
-        const newVotes = nomination.votes + 1;
-        
-        // Check if nomination should move to leaderboard
-        if (newVotes >= 500) {
-          // Get existing leaderboard entries
-          const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-          
-          // Add to leaderboard
-          localStorage.setItem('leaderboard', JSON.stringify([...leaderboard, {...nomination, votes: newVotes}]));
-          
-          toast({
-            title: "Nomination Promoted!",
-            description: `${nomination.name} has reached 500 votes and has been moved to the leaderboard.`,
-          });
-          
-          // Remove from pending nominations
-          return null;
-        }
-        
-        return { ...nomination, votes: newVotes };
-      }
-      return nomination;
-    }).filter(Boolean); // Remove null entries
-
-    // Update localStorage and state
-    localStorage.setItem('pendingNominations', JSON.stringify(updatedNominations));
-    setPendingNominations(updatedNominations);
+      if (error) throw error;
+      setPendingNominations(data || []);
+    } catch (error) {
+      console.error("Error fetching nominations:", error);
+      toast({
+        title: "Error",
+        description: "Could not load pending nominations",
+        variant: "destructive",
+      });
+    }
   };
+
+  useEffect(() => {
+    // Initial fetch
+    fetchPendingNominations();
+
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'nominations',
+          filter: 'status=eq.pending'
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          fetchPendingNominations(); // Refresh the list when changes occur
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-8">
