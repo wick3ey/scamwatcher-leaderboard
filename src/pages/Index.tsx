@@ -81,7 +81,7 @@ const Index = () => {
             <img 
               src="/lovable-uploads/a03e5c74-86a0-4321-8579-27e4caf444c8.png" 
               alt="RugBuster Logo" 
-              className="w-16 h-16" // Increased from w-14 h-14 to w-16 h-16
+              className="w-16 h-16"
             />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
               RugBuster.
@@ -99,6 +99,19 @@ const Index = () => {
         </div>
         
         <div className="px-2 md:px-4 py-6">
+          {/* New Position for View Pending Nominations Button */}
+          <div className="flex justify-center mb-6">
+            <Link to="/nominations?status=pending">
+              <Button 
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+              >
+                <ListFilter className="w-5 h-5 mr-2" />
+                View Pending Nominations
+              </Button>
+            </Link>
+          </div>
+
           <h2 className="text-2xl font-semibold text-center mb-6">
             Crypto Rug Pull Registry
           </h2>
@@ -168,20 +181,6 @@ const Index = () => {
           <Footer />
         </div>
       </div>
-
-      {/* Floating Widget Button for Pending Nominations */}
-      <Link 
-        to="/nominations?status=pending"
-        className="fixed bottom-6 right-6 z-50 animate-bounce hover:animate-none"
-      >
-        <Button 
-          size="lg"
-          className="rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-        >
-          <ListFilter className="w-5 h-5 mr-2" />
-          View Pending Nominations
-        </Button>
-      </Link>
     </div>
   );
 };
