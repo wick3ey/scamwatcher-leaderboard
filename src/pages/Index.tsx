@@ -95,16 +95,9 @@ const Index = () => {
         </div>
         
         <header className="text-center mb-6 md:mb-8 animate-fade-in">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img 
-              src="/lovable-uploads/957cbf4a-a10e-4790-9a0a-607ac4277134.png" 
-              alt="RugBuster Logo" 
-              className="w-12 h-12 md:w-16 md:h-16 object-contain animate-float"
-            />
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
-              RugBuster.
-            </h1>
-          </div>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
+            Crypto Rug Pull Registry
+          </h1>
           
           <Alert className="max-w-2xl mx-auto mb-6 md:mb-8 bg-primary/10 border-primary/20">
             <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
