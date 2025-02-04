@@ -228,7 +228,7 @@ const AdminDashboard = () => {
                   <TableCell>
                     <Badge 
                       variant={
-                        nomination.status === 'approved' ? 'success' :
+                        nomination.status === 'approved' ? 'secondary' :
                         nomination.status === 'rejected' ? 'destructive' :
                         'default'
                       }
