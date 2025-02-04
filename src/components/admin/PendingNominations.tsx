@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Check, X, AlertTriangle, Loader2 } from "lucide-react";
+import { Check, X, AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function PendingNominations() {
@@ -66,6 +66,31 @@ export function PendingNominations() {
     }
   };
 
+  const handleDeleteAllPending = async () => {
+    try {
+      const { error } = await supabase
+        .from('nominations')
+        .delete()
+        .eq('status', 'pending');
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "All pending nominations have been deleted",
+      });
+
+      setNominations([]);
+    } catch (error: any) {
+      console.error("Error deleting nominations:", error);
+      toast({
+        title: "Error",
+        description: "Could not delete nominations",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleStatusUpdate = async (id: string, status: 'approved' | 'rejected') => {
     try {
       const { error } = await supabase
@@ -84,7 +109,6 @@ export function PendingNominations() {
         description: `Nomination ${status}`,
       });
 
-      // Refresh the nominations list
       loadPendingNominations();
     } catch (error: any) {
       console.error("Error updating status:", error);
@@ -115,8 +139,16 @@ export function PendingNominations() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Pending Nominations</CardTitle>
+        <Button 
+          variant="destructive" 
+          onClick={handleDeleteAllPending}
+          className="flex items-center gap-2"
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete All Pending
+        </Button>
       </CardHeader>
       <CardContent>
         <Table>
