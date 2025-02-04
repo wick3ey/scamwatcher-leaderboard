@@ -93,7 +93,7 @@ const AdminDashboard = () => {
         throw new Error('Inga nomineringar hittades');
       }
       
-      console.log('Loaded nominations:', data); // Debug log
+      console.log('Loaded nominations:', data);
       setNominations(data);
     } catch (error: any) {
       console.error('Error loading nominations:', error);
@@ -120,6 +120,7 @@ const AdminDashboard = () => {
       toast({
         title: "Framgång",
         description: "Nominering raderad",
+        variant: "default",
       });
 
       loadNominations();
@@ -144,6 +145,7 @@ const AdminDashboard = () => {
       toast({
         title: "Framgång",
         description: `Status uppdaterad till ${newStatus}`,
+        variant: "default",
       });
 
       loadNominations();
