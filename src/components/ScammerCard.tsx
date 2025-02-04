@@ -63,7 +63,7 @@ const ScammerCard = ({
         .from('user_actions')
         .select('action_type')
         .eq('user_id', session.user.id)
-        .eq('scammer_id', parseInt(id));
+        .eq('scammer_id', id);
 
       if (userActions) {
         setHasVoted(userActions.some(action => action.action_type === 'vote'));
@@ -116,7 +116,7 @@ const ScammerCard = ({
           .from('user_actions')
           .insert({
             user_id: session.user.id,
-            scammer_id: parseInt(id),
+            scammer_id: id,  // Remove parseInt, pass UUID directly
             action_type: action
           });
 
@@ -151,6 +151,8 @@ const ScammerCard = ({
     }
   };
 
+  // ... keep existing code (render method)
+
   return (
     <>
       <Card className="glass-card transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
@@ -172,15 +174,7 @@ const ScammerCard = ({
                 <CardTitle className="text-xl font-bold mb-1">{name}</CardTitle>
                 <CardDescription className="flex items-center gap-2">
                   <Twitter className="h-4 w-4" />
-                  <a 
-                    href={`https://twitter.com/${twitterHandle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline flex items-center gap-1"
-                  >
-                    @{twitterHandle}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+                  @{twitterHandle}
                 </CardDescription>
               </div>
             </div>
