@@ -38,9 +38,50 @@
 }
 
 .glass-card {
-  @apply bg-secondary/30 backdrop-blur-lg border border-white/10 rounded-xl;
+  @apply bg-secondary/30 backdrop-blur-lg border border-white/10 rounded-xl shadow-xl;
 }
 
 .hover-scale {
   @apply transition-transform duration-200 hover:scale-105;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1;
+}
+
+.social-icon {
+  @apply transition-all duration-300 hover:text-primary hover:scale-110;
+}
+
+.button-glow {
+  @apply relative overflow-hidden;
+}
+
+.button-glow::after {
+  @apply content-[''] absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
+  background: radial-gradient(circle at center, var(--primary) 0%, transparent 70%);
+}
+
+.button-glow:hover::after {
+  @apply opacity-20;
 }
