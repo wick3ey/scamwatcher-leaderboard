@@ -26,7 +26,6 @@ const Nominations = () => {
   const { toast } = useToast();
   const { session } = useAuth();
 
-  // Fetch pending nominations with proper error handling
   const fetchPendingNominations = async () => {
     try {
       setIsLoading(true);
@@ -59,7 +58,6 @@ const Nominations = () => {
   useEffect(() => {
     fetchPendingNominations();
 
-    // Set up real-time subscription for pending nominations
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -70,8 +68,7 @@ const Nominations = () => {
           table: 'nominations',
           filter: 'status=eq.pending'
         },
-        (payload) => {
-          console.log('Real-time update received:', payload);
+        () => {
           fetchPendingNominations();
         }
       )
@@ -82,7 +79,7 @@ const Nominations = () => {
     };
   }, []);
 
-  const handleVote = async (id: string) => {
+  const handleVote = async (nominationId: string) => {
     if (!session) {
       toast({
         title: "Authentication required",
@@ -98,7 +95,7 @@ const Nominations = () => {
         .from('user_actions')
         .select('*')
         .eq('user_id', session.user.id)
-        .eq('scammer_id', id)
+        .eq('scammer_id', parseInt(nominationId))
         .eq('action_type', 'vote')
         .single();
 
@@ -112,21 +109,19 @@ const Nominations = () => {
       }
 
       // Get current votes
-      const { data: nomination, error: fetchError } = await supabase
+      const { data: nomination } = await supabase
         .from('nominations')
         .select('votes')
-        .eq('id', id)
+        .eq('id', nominationId)
         .single();
-
-      if (fetchError) throw fetchError;
 
       const newVotes = (nomination?.votes || 0) + 1;
 
-      // Update votes in a transaction-like manner
+      // Update votes
       const { error: updateError } = await supabase
         .from('nominations')
         .update({ votes: newVotes })
-        .eq('id', id);
+        .eq('id', nominationId);
 
       if (updateError) throw updateError;
 
@@ -135,7 +130,7 @@ const Nominations = () => {
         .from('user_actions')
         .insert({
           user_id: session.user.id,
-          scammer_id: id,
+          scammer_id: parseInt(nominationId),
           action_type: 'vote'
         });
 
@@ -200,7 +195,15 @@ const Nominations = () => {
               pendingNominations.map((nomination) => (
                 <ScammerCard
                   key={nomination.id}
-                  {...nomination}
+                  id={nomination.id}
+                  name={nomination.name}
+                  twitterHandle={nomination.twitter_handle}
+                  scamDescription={nomination.scam_description}
+                  votes={nomination.votes}
+                  amountStolenUSD={nomination.amount_stolen_usd}
+                  lawsuitSignatures={nomination.lawsuit_signatures}
+                  targetSignatures={nomination.target_signatures}
+                  tokenName={nomination.token_name}
                   onVote={() => handleVote(nomination.id)}
                 />
               ))
