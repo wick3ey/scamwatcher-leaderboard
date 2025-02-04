@@ -61,7 +61,6 @@ const Index = () => {
 
       if (updateError) throw updateError;
 
-      // Update local state
       const updatedScammers = scammers.map(scammer => 
         scammer.id === id 
           ? { ...scammer, votes: (scammer.votes || 0) + 1 }
@@ -74,53 +73,38 @@ const Index = () => {
     }
   };
 
-  const stats = {
-    totalVotes: scammers.reduce((acc, curr) => acc + (curr.votes || 0), 0),
-    totalScammers: scammers.length,
-    totalStolenUSD: scammers.reduce((acc, curr) => acc + (curr.amount_stolen_usd || 0), 0),
-    totalStolenSOL: scammers.reduce((acc, curr) => acc + (curr.amount_stolen_sol || 0), 0)
-  };
-
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-4 gap-4">
-          <Link to="/about">
-            <Button variant="outline" size={isMobile ? "sm" : "default"} className="flex items-center gap-2">
-              <Info className="h-4 w-4 md:h-5 md:w-5" />
-              <span className="hidden md:inline">About Us</span>
-            </Button>
-          </Link>
-          <UserMenu />
+        <div className="flex justify-between items-center mb-8 gap-4">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/a03e5c74-86a0-4321-8579-27e4caf444c8.png" 
+              alt="RugBuster Logo" 
+              className="w-12 h-12 md:w-16 md:h-16"
+            />
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
+              RugBuster.
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link to="/about">
+              <Button variant="outline" size={isMobile ? "sm" : "default"} className="flex items-center gap-2">
+                <Info className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="hidden md:inline">About Us</span>
+              </Button>
+            </Link>
+            <UserMenu />
+          </div>
         </div>
         
-        <header className="text-center mb-6 md:mb-8 animate-fade-in">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
-            Crypto Rug Pull Registry
-          </h1>
-          
-          <Alert className="max-w-2xl mx-auto mb-6 md:mb-8 bg-primary/10 border-primary/20">
-            <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
-            <AlertDescription className="text-base md:text-lg">
-              RugBuster is dedicated to pursuing legal action against high-profile scammers in the Web3 space. 
-              Our mission is to hold KOLs, influencers, and celebrities accountable when they betray their communities through fraudulent activities.
-            </AlertDescription>
-          </Alert>
-          
-          <Link 
-            to="/nominations" 
-            className="glass-card hover-scale inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 text-base md:text-lg font-semibold text-primary"
-          >
-            View Pending Nominations
-            <span className="text-xl md:text-2xl">→</span>
-          </Link>
-        </header>
-
-        {error && (
-          <Alert variant="destructive" className="mb-4 md:mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        <Alert className="max-w-2xl mx-auto mb-8 bg-primary/10 border-primary/20">
+          <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+          <AlertDescription className="text-base md:text-lg">
+            RugBuster is dedicated to pursuing legal action against high-profile scammers in the Web3 space. 
+            Our mission is to hold KOLs, influencers, and celebrities accountable when they betray their communities through fraudulent activities.
+          </AlertDescription>
+        </Alert>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {isMobile && (
