@@ -57,6 +57,40 @@ const Nominations = () => {
     };
   }, []);
 
+  const handleVote = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('nominations')
+        .select('votes')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      const newVotes = (data?.votes || 0) + 1;
+
+      const { error: updateError } = await supabase
+        .from('nominations')
+        .update({ votes: newVotes })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      // The real-time subscription will automatically update the UI
+      toast({
+        title: "Vote recorded",
+        description: "Thank you for voting!",
+      });
+    } catch (error) {
+      console.error("Error updating votes:", error);
+      toast({
+        title: "Error",
+        description: "Could not record vote. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
