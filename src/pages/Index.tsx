@@ -83,14 +83,9 @@ const Index = () => {
               alt="RugBuster Logo" 
               className="w-10 h-10"
             />
-            <div className="flex flex-col items-start">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
-                RugBuster.
-              </h1>
-              <span className="text-sm text-muted-foreground">
-                Crypto Rug Pull Registry
-              </span>
-            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
+              RugBuster.
+            </h1>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/about">
@@ -104,6 +99,10 @@ const Index = () => {
         </div>
         
         <div className="px-2 md:px-4 py-6">
+          <h2 className="text-2xl font-semibold text-center mb-6">
+            Crypto Rug Pull Registry
+          </h2>
+
           <Alert className="max-w-2xl mx-auto mb-8 bg-primary/10 border-primary/20">
             <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
             <AlertDescription className="text-base md:text-lg">
