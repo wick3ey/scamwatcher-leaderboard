@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NominationControls } from "@/components/admin/NominationControls";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type Nomination = {
   id: string;
@@ -31,6 +33,9 @@ type Nomination = {
   status: string;
   created_at: string;
   scam_description: string;
+  votes: number;
+  lawsuit_signatures: number;
+  image_url: string | null;
 };
 
 const AdminDashboard = () => {
@@ -211,17 +216,27 @@ const AdminDashboard = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Profil</TableHead>
                 <TableHead>Namn</TableHead>
                 <TableHead>Twitter</TableHead>
                 <TableHead>Belopp Stulet</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Datum</TableHead>
+                <TableHead>Kontroller</TableHead>
                 <TableHead>Åtgärder</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {nominations.map((nomination) => (
                 <TableRow key={nomination.id}>
+                  <TableCell>
+                    <Avatar>
+                      <AvatarImage src={nomination.image_url || undefined} />
+                      <AvatarFallback>
+                        {nomination.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TableCell>
                   <TableCell className="font-medium">{nomination.name}</TableCell>
                   <TableCell>@{nomination.twitter_handle}</TableCell>
                   <TableCell>${nomination.amount_stolen_usd.toLocaleString()}</TableCell>
@@ -238,6 +253,12 @@ const AdminDashboard = () => {
                   </TableCell>
                   <TableCell>
                     {new Date(nomination.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <NominationControls 
+                      nomination={nomination}
+                      onUpdate={loadNominations}
+                    />
                   </TableCell>
                   <TableCell className="space-x-2">
                     <Button
@@ -269,7 +290,7 @@ const AdminDashboard = () => {
               ))}
               {nominations.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Inga nomineringar hittades
                   </TableCell>
                 </TableRow>
