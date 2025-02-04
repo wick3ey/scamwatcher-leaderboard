@@ -63,7 +63,7 @@ const ScammerCard = ({
         .from('user_actions')
         .select('action_type')
         .eq('user_id', session.user.id)
-        .eq('scammer_id', id);
+        .eq('scammer_id', Number(id));  // Convert UUID to number
 
       if (userActions) {
         setHasVoted(userActions.some(action => action.action_type === 'vote'));
@@ -116,7 +116,7 @@ const ScammerCard = ({
           .from('user_actions')
           .insert({
             user_id: session.user.id,
-            scammer_id: id,  // Remove parseInt, pass UUID directly
+            scammer_id: Number(id),  // Convert UUID to number
             action_type: action
           });
 
@@ -150,8 +150,6 @@ const ScammerCard = ({
       });
     }
   };
-
-  // ... keep existing code (render method)
 
   return (
     <>
