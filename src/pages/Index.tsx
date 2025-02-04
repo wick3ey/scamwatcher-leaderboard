@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
-import { Award, AlertTriangle, Users, DollarSign, Info } from "lucide-react";
+import { AlertTriangle, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [scammers, setScammers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchScammers();
@@ -80,26 +82,26 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
+    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-4 gap-4">
           <Link to="/about">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Info className="h-5 w-5" />
-              About Us
+            <Button variant="outline" size={isMobile ? "sm" : "default"} className="flex items-center gap-2">
+              <Info className="h-4 w-4 md:h-5 md:w-5" />
+              <span className="hidden md:inline">About Us</span>
             </Button>
           </Link>
           <UserMenu />
         </div>
         
-        <header className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
+        <header className="text-center mb-6 md:mb-8 animate-fade-in">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Crypto Rug Pull Registry
           </h1>
           
-          <Alert className="max-w-2xl mx-auto mb-8 bg-primary/10 border-primary/20">
-            <AlertTriangle className="h-5 w-5" />
-            <AlertDescription className="text-lg">
+          <Alert className="max-w-2xl mx-auto mb-6 md:mb-8 bg-primary/10 border-primary/20">
+            <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+            <AlertDescription className="text-base md:text-lg">
               RugBuster is dedicated to pursuing legal action against high-profile scammers in the Web3 space. 
               Our mission is to hold KOLs, influencers, and celebrities accountable when they betray their communities through fraudulent activities.
             </AlertDescription>
@@ -107,59 +109,71 @@ const Index = () => {
           
           <Link 
             to="/nominations" 
-            className="glass-card hover-scale inline-flex items-center gap-2 px-6 py-3 text-lg font-semibold text-primary"
+            className="glass-card hover-scale inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 text-base md:text-lg font-semibold text-primary"
           >
             View Pending Nominations
-            <span className="text-2xl">→</span>
+            <span className="text-xl md:text-2xl">→</span>
           </Link>
         </header>
 
         {error && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-4 md:mb-6">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Top Scammers</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+          {isMobile && (
+            <div className="mb-6">
+              <NominateScammer />
+            </div>
+          )}
+          
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold">Top Scammers</h2>
               <div className="text-sm text-muted-foreground">
                 Sorted by most votes
               </div>
             </div>
 
-            {isLoading ? (
-              Array(3).fill(0).map((_, i) => (
-                <div key={i} className="space-y-4">
-                  <Skeleton className="h-[200px] w-full" />
+            <div className="space-y-4 md:space-y-6">
+              {isLoading ? (
+                Array(3).fill(0).map((_, i) => (
+                  <Skeleton key={i} className="h-[200px] w-full rounded-xl" />
+                ))
+              ) : scammers.length > 0 ? (
+                scammers.map((scammer, index) => (
+                  <div 
+                    key={scammer.id} 
+                    className="animate-fade-in" 
+                    style={{ animationDelay: `${index * 150}ms` }}
+                  >
+                    <ScammerCard
+                      {...scammer}
+                      twitterHandle={scammer.twitter_handle}
+                      scamDescription={scammer.scam_description}
+                      amountStolenUSD={scammer.amount_stolen_usd}
+                      lawsuitSignatures={scammer.lawsuit_signatures}
+                      targetSignatures={scammer.target_signatures}
+                      rank={index + 1}
+                      onVote={() => handleVote(scammer.id)}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground py-8 md:py-12">
+                  No scammers on the leaderboard yet. Check the pending nominations!
                 </div>
-              ))
-            ) : scammers.length > 0 ? (
-              scammers.map((scammer, index) => (
-                <div key={scammer.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
-                  <ScammerCard
-                    {...scammer}
-                    twitterHandle={scammer.twitter_handle}
-                    scamDescription={scammer.scam_description}
-                    amountStolenUSD={scammer.amount_stolen_usd}
-                    lawsuitSignatures={scammer.lawsuit_signatures}
-                    targetSignatures={scammer.target_signatures}
-                    rank={index + 1}
-                    onVote={() => handleVote(scammer.id)}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="text-center text-muted-foreground py-12">
-                No scammers on the leaderboard yet. Check the pending nominations!
-              </div>
-            )}
+              )}
+            </div>
           </div>
           
-          <div className="md:col-span-1">
-            <NominateScammer />
-          </div>
+          {!isMobile && (
+            <div className="lg:col-span-1">
+              <NominateScammer />
+            </div>
+          )}
         </div>
 
         <Footer />
