@@ -1,4 +1,4 @@
-import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign, Coins } from "lucide-react";
+import { ArrowUp, AlertCircle, User, Twitter, Shield, ExternalLink, GavelIcon, DollarSign, Coins, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,6 +31,7 @@ interface ScammerCardProps {
   targetSignatures: number;
   tokenName?: string;
   image_url?: string;
+  isVoting?: boolean;
 }
 
 const ScammerCard = ({ 
@@ -46,7 +47,8 @@ const ScammerCard = ({
   lawsuitSignatures,
   targetSignatures,
   tokenName,
-  image_url
+  image_url,
+  isVoting = false
 }: ScammerCardProps) => {
   const [showLawsuitDialog, setShowLawsuitDialog] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -100,65 +102,17 @@ const ScammerCard = ({
       return;
     }
 
-    if (action === 'vote' && hasVoted && !isAdmin) {
-      toast({
-        title: "Already voted",
-        description: "You have already voted for this scammer",
-      });
-      return;
-    }
-
-    if (action === 'lawsuit' && hasSignedLawsuit && !isAdmin) {
-      toast({
-        title: "Already signed",
-        description: "You have already signed the lawsuit for this scammer",
-      });
-      return;
-    }
-
-    try {
-      // Record user action
-      const { error: actionError } = await supabase
-        .from('user_actions')
-        .insert({
-          user_id: session.user.id,
-          scammer_id: numeric_id,
-          action_type: action
-        });
-
-      if (actionError) {
-        console.error('Error recording action:', actionError);
-        throw actionError;
-      }
-
-      if (action === 'vote') {
-        // Update vote count
-        const { error: updateError } = await supabase
-          .from('nominations')
-          .update({ votes: votes + 1 })
-          .eq('id', id);
-
-        if (updateError) {
-          console.error('Error updating votes:', updateError);
-          throw updateError;
-        }
-
-        setHasVoted(true);
-        onVote();
+    if (action === 'vote') {
+      if (hasVoted && !isAdmin) {
         toast({
-          title: "Vote recorded",
-          description: "Thank you for voting!",
+          title: "Already voted",
+          description: "You have already voted for this scammer",
         });
-      } else {
-        setShowLawsuitDialog(true);
+        return;
       }
-    } catch (error: any) {
-      console.error(`Error recording ${action}:`, error);
-      toast({
-        title: "Error",
-        description: `Failed to record ${action}. Please try again.`,
-        variant: "destructive",
-      });
+      onVote();
+    } else {
+      setShowLawsuitDialog(true);
     }
   };
 
@@ -253,12 +207,16 @@ const ScammerCard = ({
               variant={hasVoted && !isAdmin ? "secondary" : "default"}
               size="sm"
               className={`transition-all duration-300 ${
-                hasVoted && !isAdmin ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
+                (hasVoted && !isAdmin) || isVoting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
               }`}
-              disabled={hasVoted && !isAdmin}
+              disabled={(hasVoted && !isAdmin) || isVoting}
             >
-              <ArrowUp className="mr-2 h-4 w-4" />
-              {hasVoted && !isAdmin ? 'Voted' : 'Vote Up'}
+              {isVoting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <ArrowUp className="mr-2 h-4 w-4" />
+              )}
+              {isVoting ? 'Voting...' : hasVoted && !isAdmin ? 'Voted' : 'Vote Up'}
             </Button>
             <Button
               variant="outline"

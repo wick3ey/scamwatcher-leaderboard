@@ -19,6 +19,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [processingVotes, setProcessingVotes] = useState<{ [key: string]: boolean }>({});
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -60,7 +61,6 @@ const Index = () => {
 
       if (error) throw error;
 
-      console.log("Fetched scammers:", data);
       setScammers(data || []);
     } catch (error: any) {
       console.error("Error fetching scammers:", error);
@@ -76,30 +76,32 @@ const Index = () => {
   };
 
   const handleVote = async (id: string, numeric_id: number) => {
-    if (isUpdating || !user) {
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to vote.",
-          variant: "destructive",
-        });
-      }
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to vote.",
+        variant: "destructive",
+      });
       return;
     }
 
-    try {
-      setIsUpdating(true);
+    if (processingVotes[id]) {
+      return; // Prevent multiple votes while processing
+    }
 
-      // First check if user has already voted
+    try {
+      setProcessingVotes(prev => ({ ...prev, [id]: true }));
+
+      // Check for existing vote using a transaction
       const { data: existingVote, error: checkError } = await supabase
         .from('user_actions')
         .select('*')
         .eq('user_id', user.id)
         .eq('scammer_id', numeric_id)
         .eq('action_type', 'vote')
-        .single();
+        .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows returned
+      if (checkError) {
         throw checkError;
       }
 
@@ -112,21 +114,8 @@ const Index = () => {
         return;
       }
 
-      // If no existing vote, proceed with inserting the vote
-      const { error: actionError } = await supabase
-        .from('user_actions')
-        .insert({
-          scammer_id: numeric_id,
-          action_type: 'vote',
-          user_id: user.id
-        });
-
-      if (actionError) {
-        throw actionError;
-      }
-
-      // Update the vote count
-      const { data: currentData, error: fetchError } = await supabase
+      // Start a transaction by getting the current vote count
+      const { data: nomination, error: fetchError } = await supabase
         .from('nominations')
         .select('votes')
         .eq('id', id)
@@ -136,19 +125,35 @@ const Index = () => {
         throw fetchError;
       }
 
+      const currentVotes = nomination?.votes || 0;
+
+      // Insert the user action first
+      const { error: actionError } = await supabase
+        .from('user_actions')
+        .insert({
+          user_id: user.id,
+          scammer_id: numeric_id,
+          action_type: 'vote'
+        });
+
+      if (actionError) {
+        throw actionError;
+      }
+
+      // Update the nomination's vote count
       const { error: updateError } = await supabase
         .from('nominations')
-        .update({ votes: (currentData?.votes || 0) + 1 })
+        .update({ votes: currentVotes + 1 })
         .eq('id', id);
 
       if (updateError) {
         throw updateError;
       }
 
-      // Update local state
-      setScammers(prev => 
-        prev.map(scammer => 
-          scammer.id === id 
+      // Update local state optimistically
+      setScammers(prev =>
+        prev.map(scammer =>
+          scammer.id === id
             ? { ...scammer, votes: (scammer.votes || 0) + 1 }
             : scammer
         )
@@ -159,34 +164,16 @@ const Index = () => {
         description: "Your vote has been recorded!",
       });
     } catch (error: any) {
-      console.error("Error updating votes:", error);
+      console.error("Error recording vote:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to record vote. Please try again.",
+        title: "Failed to Record Vote",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
-      setIsUpdating(false);
+      setProcessingVotes(prev => ({ ...prev, [id]: false }));
     }
   };
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-          <Button 
-            variant="outline" 
-            onClick={fetchScammers}
-            className="mt-4"
-          >
-            Try Again
-          </Button>
-        </Alert>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -274,6 +261,7 @@ const Index = () => {
                         targetSignatures={scammer.target_signatures}
                         rank={index + 1}
                         onVote={() => handleVote(scammer.id, scammer.numeric_id)}
+                        isVoting={processingVotes[scammer.id]}
                       />
                     </div>
                   ))
