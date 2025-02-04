@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ScammerCardProps {
   id: string;
@@ -28,6 +29,7 @@ interface ScammerCardProps {
   lawsuitSignatures: number;
   targetSignatures: number;
   tokenName?: string;
+  image_url?: string;
 }
 
 const ScammerCard = ({ 
@@ -41,7 +43,8 @@ const ScammerCard = ({
   amountStolenUSD,
   lawsuitSignatures,
   targetSignatures,
-  tokenName
+  tokenName,
+  image_url
 }: ScammerCardProps) => {
   const [showLawsuitDialog, setShowLawsuitDialog] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -159,9 +162,12 @@ const ScammerCard = ({
           )}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-secondary/50 p-2 rounded-full">
-                <User className="h-6 w-6 text-primary" />
-              </div>
+              <Avatar className="h-12 w-12 border-2 border-primary/20">
+                <AvatarImage src={image_url || undefined} alt={name} />
+                <AvatarFallback>
+                  <User className="h-6 w-6 text-primary" />
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <CardTitle className="text-xl font-bold mb-1">{name}</CardTitle>
                 <CardDescription className="flex items-center gap-2">
