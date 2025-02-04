@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronUp, ChevronDown, Plus } from "lucide-react";
+import { ChevronUp, ChevronDown, Plus, List } from "lucide-react";
 
 interface NominationControlsProps {
   nomination: {
@@ -76,6 +76,10 @@ export function NominationControls({ nomination, onUpdate }: NominationControlsP
       });
   };
 
+  const viewPendingNominations = () => {
+    window.location.href = "/nominations?status=pending";
+  };
+
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1">
@@ -117,6 +121,16 @@ export function NominationControls({ nomination, onUpdate }: NominationControlsP
         >
           <ChevronUp className="h-4 w-4" />
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => updateCount("lawsuit_signatures", true, 100)}
+          disabled={isUpdating}
+          className="bg-primary/10"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          100
+        </Button>
         <span className="min-w-[3ch] text-center">
           {nomination.lawsuit_signatures || 0}
         </span>
@@ -129,6 +143,16 @@ export function NominationControls({ nomination, onUpdate }: NominationControlsP
           <ChevronDown className="h-4 w-4" />
         </Button>
       </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={viewPendingNominations}
+        className="ml-2"
+      >
+        <List className="h-4 w-4 mr-2" />
+        View Pending
+      </Button>
 
       <ImageUpload onUploadComplete={handleImageUpload} />
     </div>
