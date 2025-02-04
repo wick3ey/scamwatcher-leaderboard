@@ -14,8 +14,7 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: true,
       flowType: 'pkce',
       storage: window.localStorage,
-      storageKey: 'rb-auth',
-      domain: 'rugbuster.xyz'
+      storageKey: 'rb-auth'
     },
     realtime: {
       params: {
