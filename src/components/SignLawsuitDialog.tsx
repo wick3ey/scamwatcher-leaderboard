@@ -14,9 +14,12 @@ interface SignLawsuitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   scammerName: string;
+  onSubmit?: () => Promise<void>; // Make onSubmit optional
 }
 
-export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsuitDialogProps) {
+// ... keep existing code (form data state and handlers)
+
+export function SignLawsuitDialog({ open, onOpenChange, scammerName, onSubmit }: SignLawsuitDialogProps) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -52,6 +55,10 @@ export function SignLawsuitDialog({ open, onOpenChange, scammerName }: SignLawsu
         variant: "destructive",
       });
       return;
+    }
+
+    if (onSubmit) {
+      await onSubmit();
     }
 
     toast({

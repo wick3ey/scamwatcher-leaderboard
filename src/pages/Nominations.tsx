@@ -4,20 +4,7 @@ import ScammerCard from "@/components/ScammerCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-
-interface Nomination {
-  id: string;
-  numeric_id: number;
-  name: string;
-  twitter_handle: string;
-  scam_description: string;
-  votes: number;
-  amount_stolen_usd: number;
-  lawsuit_signatures: number;
-  target_signatures: number;
-  token_name?: string;
-  created_at: string;
-}
+import type { Nomination } from "@/types/nomination";
 
 const Nominations = () => {
   const [pendingNominations, setPendingNominations] = useState<Nomination[]>([]);
@@ -80,7 +67,6 @@ const Nominations = () => {
 
   const handleVote = async (nominationId: string) => {
     try {
-      // Get current votes
       const { data: nomination } = await supabase
         .from('nominations')
         .select('votes')
@@ -89,7 +75,6 @@ const Nominations = () => {
 
       const newVotes = (nomination?.votes || 0) + 1;
 
-      // Update votes
       const { error: updateError } = await supabase
         .from('nominations')
         .update({ votes: newVotes })
@@ -106,6 +91,37 @@ const Nominations = () => {
       toast({
         title: "Error",
         description: "Could not record vote. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSignLawsuit = async (nominationId: string) => {
+    try {
+      const { data: nomination } = await supabase
+        .from('nominations')
+        .select('lawsuit_signatures')
+        .eq('id', nominationId)
+        .single();
+
+      const newSignatures = (nomination?.lawsuit_signatures || 0) + 1;
+
+      const { error: updateError } = await supabase
+        .from('nominations')
+        .update({ lawsuit_signatures: newSignatures })
+        .eq('id', nominationId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Success",
+        description: "Your lawsuit signature has been recorded",
+      });
+    } catch (error) {
+      console.error("Error updating lawsuit signatures:", error);
+      toast({
+        title: "Error",
+        description: "Could not record signature. Please try again.",
         variant: "destructive",
       });
     }
@@ -167,6 +183,7 @@ const Nominations = () => {
                   targetSignatures={nomination.target_signatures}
                   tokenName={nomination.token_name}
                   onVote={() => handleVote(nomination.id)}
+                  onSignLawsuit={() => handleSignLawsuit(nomination.id)}
                 />
               ))
             ) : (
