@@ -90,7 +90,29 @@ const Index = () => {
     try {
       setIsUpdating(true);
 
-      // First, record the user action
+      // First check if user has already voted
+      const { data: existingVote, error: checkError } = await supabase
+        .from('user_actions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('scammer_id', numeric_id)
+        .eq('action_type', 'vote')
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows returned
+        throw checkError;
+      }
+
+      if (existingVote) {
+        toast({
+          title: "Already Voted",
+          description: "You have already voted for this nomination.",
+          variant: "default",
+        });
+        return;
+      }
+
+      // If no existing vote, proceed with inserting the vote
       const { error: actionError } = await supabase
         .from('user_actions')
         .insert({
@@ -100,10 +122,10 @@ const Index = () => {
         });
 
       if (actionError) {
-        throw new Error(actionError.message);
+        throw actionError;
       }
 
-      // Then update the vote count
+      // Update the vote count
       const { data: currentData, error: fetchError } = await supabase
         .from('nominations')
         .select('votes')
@@ -111,7 +133,7 @@ const Index = () => {
         .single();
 
       if (fetchError) {
-        throw new Error(fetchError.message);
+        throw fetchError;
       }
 
       const { error: updateError } = await supabase
@@ -120,7 +142,7 @@ const Index = () => {
         .eq('id', id);
 
       if (updateError) {
-        throw new Error(updateError.message);
+        throw updateError;
       }
 
       // Update local state
