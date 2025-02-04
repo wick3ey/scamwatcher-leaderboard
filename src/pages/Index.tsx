@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, ListFilter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -168,6 +168,20 @@ const Index = () => {
           <Footer />
         </div>
       </div>
+
+      {/* Floating Widget Button for Pending Nominations */}
+      <Link 
+        to="/nominations?status=pending"
+        className="fixed bottom-6 right-6 z-50 animate-bounce hover:animate-none"
+      >
+        <Button 
+          size="lg"
+          className="rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+        >
+          <ListFilter className="w-5 h-5 mr-2" />
+          View Pending Nominations
+        </Button>
+      </Link>
     </div>
   );
 };
