@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
-import { AlertTriangle, Info, ListFilter } from "lucide-react";
+import { AlertTriangle, Info, ListFilter, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -99,15 +99,15 @@ const Index = () => {
         </div>
         
         <div className="px-2 md:px-4 py-6">
-          {/* New Position for View Pending Nominations Button */}
-          <div className="flex justify-center mb-6">
+          {/* Updated Prominent Button */}
+          <div className="flex justify-center mb-8">
             <Link to="/nominations?status=pending">
               <Button 
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg px-8 py-6 text-lg transform transition-transform hover:scale-105"
               >
-                <ListFilter className="w-5 h-5 mr-2" />
-                View Pending Nominations
+                <ArrowRight className="w-6 h-6 mr-2" />
+                Press here to view pending nominations
               </Button>
             </Link>
           </div>
