@@ -54,23 +54,29 @@ const AdminDashboard = () => {
   const [scammerToDelete, setScammerToDelete] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("Session in AdminDashboard:", session);
     checkAdminAccess();
   }, [session]);
 
   const checkAdminAccess = async () => {
     if (!session?.user?.email) {
+      console.log("No user email found in session");
       navigate('/');
       return;
     }
 
     try {
+      console.log("Checking admin access for email:", session.user.email);
       const { data: adminData, error: adminError } = await supabase
         .from('admin_users')
         .select('*')
         .eq('email', session.user.email)
         .single();
 
+      console.log("Admin check result:", { adminData, adminError });
+
       if (adminError || !adminData || session.user.email !== 'snowden728@gmail.com') {
+        console.log("Access denied:", { adminError, adminData, userEmail: session.user.email });
         toast({
           title: "Access Denied",
           description: "You do not have permission to access this page.",
@@ -89,12 +95,19 @@ const AdminDashboard = () => {
 
   const loadScammers = async () => {
     try {
+      console.log("Loading scammers...");
       const { data, error } = await supabase
         .from('nominations')
         .select('*')
         .order('votes', { ascending: false });
 
-      if (error) throw error;
+      console.log("Scammers query result:", { data, error });
+
+      if (error) {
+        console.error("Error loading scammers:", error);
+        throw error;
+      }
+      
       setScammers(data || []);
     } catch (error: any) {
       console.error("Error loading scammers:", error);
