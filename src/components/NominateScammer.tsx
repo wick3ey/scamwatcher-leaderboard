@@ -23,8 +23,8 @@ const NominateScammer = () => {
     // Check if user is authenticated
     if (!session) {
       toast({
-        title: "Autentisering krävs",
-        description: "Logga in med Google för att nominera en scammer",
+        title: "Authentication Required",
+        description: "Please sign in with Google to nominate a scammer",
       });
       await signIn();
       return;
@@ -48,8 +48,8 @@ const NominateScammer = () => {
       if (error) throw error;
 
       toast({
-        title: "Nominering skickad",
-        description: "Tack för att du hjälper till att hålla Web3-communityt säkert!",
+        title: "Nomination Submitted",
+        description: "Thank you for helping keep the Web3 community safe!",
       });
 
       // Reset form
@@ -61,8 +61,8 @@ const NominateScammer = () => {
     } catch (error: any) {
       console.error("Error submitting nomination:", error);
       toast({
-        title: "Ett fel uppstod",
-        description: "Kunde inte skicka nomineringen. Försök igen.",
+        title: "Error",
+        description: "Could not submit nomination. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -76,15 +76,15 @@ const NominateScammer = () => {
         <div className="bg-primary/20 p-2 rounded-full">
           <AlertTriangle className="h-5 w-5 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold">Nominera en Scammer</h2>
+        <h2 className="text-2xl font-bold">Nominate a Scammer</h2>
       </div>
       
       <div className="space-y-2">
-        <label className="text-sm font-medium">Namn</label>
+        <label className="text-sm font-medium">Name</label>
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Scammarens namn"
+          placeholder="Scammer's name"
           className="bg-secondary/30"
           required
         />
@@ -102,18 +102,18 @@ const NominateScammer = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Token Namn</label>
+        <label className="text-sm font-medium">Token Name</label>
         <Input
           value={tokenName}
           onChange={(e) => setTokenName(e.target.value)}
-          placeholder="t.ex. SAFE, MOON"
+          placeholder="e.g. SAFE, MOON"
           className="bg-secondary/30"
           required
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Stulet Belopp (USD)</label>
+        <label className="text-sm font-medium">Amount Stolen (USD)</label>
         <div className="relative">
           <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -128,11 +128,11 @@ const NominateScammer = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Beskrivning av Bedrägeriet</label>
+        <label className="text-sm font-medium">Scam Description</label>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Beskriv bedrägeriet i detalj..."
+          placeholder="Describe the scam in detail..."
           required
           className="min-h-[100px] bg-secondary/30"
         />
@@ -140,7 +140,7 @@ const NominateScammer = () => {
 
       <Button type="submit" className="w-full group" disabled={isSubmitting}>
         <Send className="mr-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-        {isSubmitting ? "Skickar..." : "Skicka Nominering"}
+        {isSubmitting ? "Submitting..." : "Submit Nomination"}
       </Button>
     </form>
   );
