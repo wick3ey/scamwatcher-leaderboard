@@ -8,55 +8,75 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const [scammers, setScammers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchScammers = async () => {
+    fetchScammers();
+  }, []);
+
+  const fetchScammers = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
       const { data, error } = await supabase
         .from('nominations')
         .select('*')
         .eq('status', 'approved')
         .order('votes', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching scammers:", error);
-        return;
-      }
+      if (error) throw error;
 
+      console.log("Fetched scammers:", data);
       setScammers(data || []);
-    };
-
-    fetchScammers();
-  }, []);
+    } catch (error: any) {
+      console.error("Error fetching scammers:", error);
+      setError("Kunde inte hämta data. Försök igen senare.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleVote = async (id: string) => {
-    const { data, error } = await supabase
-      .from('nominations')
-      .select('votes')
-      .eq('id', id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('nominations')
+        .select('votes')
+        .eq('id', id)
+        .single();
 
-    if (error) {
-      console.error("Error fetching current votes:", error);
-      return;
+      if (error) throw error;
+
+      const { error: updateError } = await supabase
+        .from('nominations')
+        .update({ votes: (data?.votes || 0) + 1 })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      const updatedScammers = scammers.map(scammer => 
+        scammer.id === id 
+          ? { ...scammer, votes: (scammer.votes || 0) + 1 }
+          : scammer
+      );
+      
+      setScammers(updatedScammers);
+    } catch (error) {
+      console.error("Error updating votes:", error);
     }
-
-    const updatedScammers = scammers.map(scammer => 
-      scammer.id === id 
-        ? { ...scammer, votes: (scammer.votes || 0) + 1 }
-        : scammer
-    );
-    
-    setScammers(updatedScammers);
   };
 
   const stats = {
     totalVotes: scammers.reduce((acc, curr) => acc + (curr.votes || 0), 0),
     totalScammers: scammers.length,
-    totalStolenUSD: scammers.reduce((acc, curr) => acc + (curr.amountStolenUSD || 0), 0),
-    totalStolenSOL: scammers.reduce((acc, curr) => acc + (curr.amountStolenSOL || 0), 0)
+    totalStolenUSD: scammers.reduce((acc, curr) => acc + (curr.amount_stolen_usd || 0), 0),
+    totalStolenSOL: scammers.reduce((acc, curr) => acc + (curr.amount_stolen_sol || 0), 0)
   };
 
   return (
@@ -90,66 +110,12 @@ const Index = () => {
           </Link>
         </header>
 
-        <Alert className="mb-8 border-primary/20 bg-primary/5">
-          <Info className="h-5 w-5 text-primary" />
-          <AlertDescription className="mt-2 text-base leading-relaxed">
-            <p className="mb-3">
-              We're taking a stand against the growing epidemic of crypto scams perpetrated by influential figures in our community. Too often, Twitter KOLs, celebrities, and high-profile influencers exploit their followers' trust, walking away with millions while leaving community members helpless and devastated.
-            </p>
-            <p className="mb-3">
-              These actions not only harm individuals but tarnish the reputation of the entire crypto community. While these scammers profit from their schemes with impunity, honest community members are left without recourse or a voice.
-            </p>
-            <p className="mb-3">
-              <strong>This is where we come in.</strong> Our platform empowers the community to take action. Once a scammer reaches 1,000 lawsuit signatures, we will forward all signatures and evidence to specialized lawsuit firms who will pursue legal action on behalf of the affected community members.
-            </p>
-            <p>
-              Together, we can hold these bad actors accountable and restore integrity to our community. Your voice matters, and we're here to amplify it.
-            </p>
-          </AlertDescription>
-        </Alert>
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in">
-          <div className="glass-card p-6 flex items-center gap-4">
-            <div className="bg-primary/20 p-3 rounded-full">
-              <Award className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Votes</p>
-              <p className="text-2xl font-bold">{stats.totalVotes.toLocaleString()}</p>
-            </div>
-          </div>
-          
-          <div className="glass-card p-6 flex items-center gap-4">
-            <div className="bg-primary/20 p-3 rounded-full">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Known Scammers</p>
-              <p className="text-2xl font-bold">{stats.totalScammers}</p>
-            </div>
-          </div>
-          
-          <div className="glass-card p-6 flex items-center gap-4">
-            <div className="bg-primary/20 p-3 rounded-full">
-              <DollarSign className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Stolen (USD)</p>
-              <p className="text-2xl font-bold">${stats.totalStolenUSD.toLocaleString()}</p>
-            </div>
-          </div>
-
-          <div className="glass-card p-6 flex items-center gap-4">
-            <div className="bg-primary/20 p-3 rounded-full">
-              <AlertTriangle className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total SOL Lost</p>
-              <p className="text-2xl font-bold">{stats.totalStolenSOL.toLocaleString()} SOL</p>
-            </div>
-          </div>
-        </div>
-        
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center justify-between mb-6">
@@ -158,27 +124,28 @@ const Index = () => {
                 Sorted by most votes
               </div>
             </div>
-            <div className="space-y-6">
 
-              {scammers
-                .sort((a, b) => (b.votes || 0) - (a.votes || 0))
-                .map((scammer, index) => (
-                  <div key={scammer.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
-                    <ScammerCard
-                      {...scammer}
-                      id={scammer.id}
-                      rank={index + 1}
-                      onVote={() => handleVote(scammer.id)}
-                    />
-                  </div>
-                ))}
-
-              {scammers.length === 0 && (
-                <div className="text-center text-muted-foreground py-12">
-                  No scammers on the leaderboard yet. Check the pending nominations!
+            {isLoading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-[200px] w-full" />
                 </div>
-              )}
-            </div>
+              ))
+            ) : scammers.length > 0 ? (
+              scammers.map((scammer, index) => (
+                <div key={scammer.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+                  <ScammerCard
+                    {...scammer}
+                    rank={index + 1}
+                    onVote={() => handleVote(scammer.id)}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                No scammers on the leaderboard yet. Check the pending nominations!
+              </div>
+            )}
           </div>
           
           <div className="md:col-span-1">

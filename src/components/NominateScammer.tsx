@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Send, DollarSign } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const NominateScammer = () => {
   const [name, setName] = useState("");
@@ -12,6 +13,7 @@ const NominateScammer = () => {
   const [description, setDescription] = useState("");
   const [amountUSD, setAmountUSD] = useState("");
   const [tokenName, setTokenName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { session, signIn } = useAuth();
 
@@ -21,37 +23,33 @@ const NominateScammer = () => {
     // Check if user is authenticated
     if (!session) {
       toast({
-        title: "Authentication required",
-        description: "Please sign in with Google to nominate a scammer",
+        title: "Autentisering krävs",
+        description: "Logga in med Google för att nominera en scammer",
       });
       await signIn();
       return;
     }
+
+    setIsSubmitting(true);
     
     try {
-      // Add the new nomination to pending nominations
-      const newNomination = {
-        id: Date.now(),
-        name,
-        twitterHandle: twitter.replace('@', ''),
-        scamDescription: description,
-        votes: 0,
-        amountStolenUSD: parseFloat(amountUSD),
-        tokenName,
-        lawsuitSignatures: 0,
-        targetSignatures: 1000,
-        nominatedBy: session.user.email
-      };
+      const { error } = await supabase
+        .from('nominations')
+        .insert({
+          name,
+          twitter_handle: twitter.replace('@', ''),
+          scam_description: description,
+          amount_stolen_usd: parseFloat(amountUSD),
+          token_name: tokenName,
+          nominated_by: session.user.id,
+          status: 'pending'
+        });
 
-      // Get existing nominations from localStorage
-      const existingNominations = JSON.parse(localStorage.getItem('pendingNominations') || '[]');
-      
-      // Add new nomination
-      localStorage.setItem('pendingNominations', JSON.stringify([...existingNominations, newNomination]));
+      if (error) throw error;
 
       toast({
-        title: "Nomination submitted",
-        description: "Thank you for helping keep the Web3 community safe!",
+        title: "Nominering skickad",
+        description: "Tack för att du hjälper till att hålla Web3-communityt säkert!",
       });
 
       // Reset form
@@ -60,13 +58,15 @@ const NominateScammer = () => {
       setDescription("");
       setAmountUSD("");
       setTokenName("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting nomination:", error);
       toast({
-        title: "Error",
-        description: "Failed to submit nomination. Please try again.",
+        title: "Ett fel uppstod",
+        description: "Kunde inte skicka nomineringen. Försök igen.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -76,15 +76,15 @@ const NominateScammer = () => {
         <div className="bg-primary/20 p-2 rounded-full">
           <AlertTriangle className="h-5 w-5 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold">Nominate a Scammer</h2>
+        <h2 className="text-2xl font-bold">Nominera en Scammer</h2>
       </div>
       
       <div className="space-y-2">
-        <label className="text-sm font-medium">Name</label>
+        <label className="text-sm font-medium">Namn</label>
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Scammer's name"
+          placeholder="Scammarens namn"
           className="bg-secondary/30"
           required
         />
@@ -102,18 +102,18 @@ const NominateScammer = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Token Name</label>
+        <label className="text-sm font-medium">Token Namn</label>
         <Input
           value={tokenName}
           onChange={(e) => setTokenName(e.target.value)}
-          placeholder="e.g. SAFE, MOON"
+          placeholder="t.ex. SAFE, MOON"
           className="bg-secondary/30"
           required
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Amount Stolen (USD)</label>
+        <label className="text-sm font-medium">Stulet Belopp (USD)</label>
         <div className="relative">
           <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -128,19 +128,19 @@ const NominateScammer = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Scam Description</label>
+        <label className="text-sm font-medium">Beskrivning av Bedrägeriet</label>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the scam in detail..."
+          placeholder="Beskriv bedrägeriet i detalj..."
           required
           className="min-h-[100px] bg-secondary/30"
         />
       </div>
 
-      <Button type="submit" className="w-full group">
+      <Button type="submit" className="w-full group" disabled={isSubmitting}>
         <Send className="mr-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-        Submit Nomination
+        {isSubmitting ? "Skickar..." : "Skicka Nominering"}
       </Button>
     </form>
   );
