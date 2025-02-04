@@ -12,13 +12,22 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showNominateDialog, setShowNominateDialog] = useState(false);
 
-  const { data: scammers } = useQuery(["scammers"], async () => {
-    const { data } = await supabase.from("scammers").select("*");
-    return data;
+  const { data: nominations } = useQuery({
+    queryKey: ['nominations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("nominations")
+        .select("*")
+        .order('votes', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
   });
 
-  const filteredScammers = scammers?.filter(scammer =>
-    scammer.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredNominations = nominations?.filter(nomination =>
+    nomination.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    nomination.twitter_handle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -57,8 +66,22 @@ const Index = () => {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredScammers?.map(scammer => (
-            <ScammerCard key={scammer.id} scammer={scammer} />
+          {filteredNominations?.map((nomination) => (
+            <ScammerCard
+              key={nomination.id}
+              id={nomination.id}
+              name={nomination.name}
+              twitterHandle={nomination.twitter_handle}
+              scamDescription={nomination.scam_description}
+              votes={nomination.votes || 0}
+              onVote={() => {
+                // Refetch will happen automatically due to React Query
+              }}
+              amountStolenUSD={nomination.amount_stolen_usd}
+              lawsuitSignatures={nomination.lawsuit_signatures || 0}
+              targetSignatures={nomination.target_signatures || 1000}
+              tokenName={nomination.token_name}
+            />
           ))}
         </div>
       </div>
