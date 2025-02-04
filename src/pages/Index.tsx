@@ -1,95 +1,165 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Award, AlertTriangle, Users, DollarSign, Info } from "lucide-react";
+import { Link } from "react-router-dom";
+import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showNominateDialog, setShowNominateDialog] = useState(false);
+  const [scammers, setScammers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: nominations } = useQuery({
-    queryKey: ['nominations'],
-    queryFn: async () => {
+  useEffect(() => {
+    fetchScammers();
+  }, []);
+
+  const fetchScammers = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
       const { data, error } = await supabase
-        .from("nominations")
-        .select("*")
+        .from('nominations')
+        .select('*')
+        .eq('status', 'approved')
         .order('votes', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
 
-  const filteredNominations = nominations?.filter(nomination =>
-    nomination.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    nomination.twitter_handle.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      if (error) throw error;
+
+      console.log("Fetched scammers:", data);
+      setScammers(data || []);
+    } catch (error: any) {
+      console.error("Error fetching scammers:", error);
+      setError("Could not fetch data. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVote = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('nominations')
+        .select('votes')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      const { error: updateError } = await supabase
+        .from('nominations')
+        .update({ votes: (data?.votes || 0) + 1 })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      const updatedScammers = scammers.map(scammer => 
+        scammer.id === id 
+          ? { ...scammer, votes: (scammer.votes || 0) + 1 }
+          : scammer
+      );
+      
+      setScammers(updatedScammers);
+    } catch (error) {
+      console.error("Error updating votes:", error);
+    }
+  };
+
+  const stats = {
+    totalVotes: scammers.reduce((acc, curr) => acc + (curr.votes || 0), 0),
+    totalScammers: scammers.length,
+    totalStolenUSD: scammers.reduce((acc, curr) => acc + (curr.amount_stolen_usd || 0), 0),
+    totalStolenSOL: scammers.reduce((acc, curr) => acc + (curr.amount_stolen_sol || 0), 0)
+  };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <Link to="/about">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              About Us
+            </Button>
+          </Link>
+          <UserMenu />
+        </div>
+        
         <header className="text-center mb-8 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Crypto Rug Pull Registry
           </h1>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
+            A community-driven initiative to identify and track Web3 scammers. 
+            Help protect others by voting and nominating known scammers.
+          </p>
           
-          <Alert className="mb-8 glass-card border-primary/20">
-            <Info className="h-5 w-5 text-primary" />
-            <AlertDescription className="text-lg">
-              RugBuster. is dedicated to pursuing legal action against high-profile individuals involved in cryptocurrency scams. 
-              Our primary mission is to hold Key Opinion Leaders (KOLs), celebrities, and influencers accountable for their 
-              fraudulent activities in the crypto space. By gathering evidence and community support, we work with law firms 
-              to build cases against these perpetrators, protecting investors and maintaining integrity in Web3.
-            </AlertDescription>
-          </Alert>
-
-          <div className="flex flex-col md:flex-row gap-4 justify-center items-center mb-8">
-            <Input
-              type="text"
-              placeholder="Search by name or Twitter handle..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-md"
-            />
-            <Button 
-              onClick={() => setShowNominateDialog(true)}
-              className="button-glow"
-            >
-              Nominate a Scammer
-            </Button>
-          </div>
+          <Link 
+            to="/nominations" 
+            className="glass-card hover-scale inline-flex items-center gap-2 px-6 py-3 text-lg font-semibold text-primary"
+          >
+            View Pending Nominations
+            <span className="text-2xl">→</span>
+          </Link>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredNominations?.map((nomination) => (
-            <ScammerCard
-              key={nomination.id}
-              id={nomination.id}
-              name={nomination.name}
-              twitterHandle={nomination.twitter_handle}
-              scamDescription={nomination.scam_description}
-              votes={nomination.votes || 0}
-              onVote={() => {
-                // Refetch will happen automatically due to React Query
-              }}
-              amountStolenUSD={nomination.amount_stolen_usd}
-              lawsuitSignatures={nomination.lawsuit_signatures || 0}
-              targetSignatures={nomination.target_signatures || 1000}
-              tokenName={nomination.token_name}
-            />
-          ))}
-        </div>
-      </div>
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      <NominateScammer
-        open={showNominateDialog}
-        onOpenChange={setShowNominateDialog}
-      />
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Top Scammers</h2>
+              <div className="text-sm text-muted-foreground">
+                Sorted by most votes
+              </div>
+            </div>
+
+            {isLoading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-[200px] w-full" />
+                </div>
+              ))
+            ) : scammers.length > 0 ? (
+              scammers.map((scammer, index) => (
+                <div key={scammer.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+                  <ScammerCard
+                    {...scammer}
+                    twitterHandle={scammer.twitter_handle}
+                    scamDescription={scammer.scam_description}
+                    amountStolenUSD={scammer.amount_stolen_usd}
+                    lawsuitSignatures={scammer.lawsuit_signatures}
+                    targetSignatures={scammer.target_signatures}
+                    rank={index + 1}
+                    onVote={() => handleVote(scammer.id)}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                No scammers on the leaderboard yet. Check the pending nominations!
+              </div>
+            )}
+          </div>
+          
+          <div className="md:col-span-1">
+            <NominateScammer />
+          </div>
+        </div>
+
+        <Footer />
+      </div>
     </div>
   );
 };

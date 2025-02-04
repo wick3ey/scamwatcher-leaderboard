@@ -7,12 +7,7 @@ import { AlertTriangle, Send, DollarSign } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-interface NominateScammerProps {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}
-
-const NominateScammer = ({ open, onOpenChange }: NominateScammerProps) => {
+const NominateScammer = () => {
   const [name, setName] = useState("");
   const [twitter, setTwitter] = useState("");
   const [description, setDescription] = useState("");
@@ -63,11 +58,6 @@ const NominateScammer = ({ open, onOpenChange }: NominateScammerProps) => {
       setDescription("");
       setAmountUSD("");
       setTokenName("");
-      
-      // Close the dialog if onOpenChange is provided
-      if (onOpenChange) {
-        onOpenChange(false);
-      }
     } catch (error: any) {
       console.error("Error submitting nomination:", error);
       toast({
