@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 
 interface Nomination {
   id: string;
+  numeric_id: number;
   name: string;
   twitter_handle: string;
   scam_description: string;
@@ -156,6 +157,7 @@ const Nominations = () => {
                 <ScammerCard
                   key={nomination.id}
                   id={nomination.id}
+                  numeric_id={nomination.numeric_id}
                   name={nomination.name}
                   twitterHandle={nomination.twitter_handle}
                   scamDescription={nomination.scam_description}
