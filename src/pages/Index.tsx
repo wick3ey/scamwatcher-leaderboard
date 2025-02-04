@@ -94,7 +94,7 @@ const Index = () => {
         
         <header className="text-center mb-8 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
-            Web3 Scammer Leaderboard
+            Crypto Rug Pull Registry
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
             A community-driven initiative to identify and track Web3 scammers. 

@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# Welcome to RugBuster.
+
+The premier platform for identifying and tracking crypto rug pulls.
 
 ## Project info
 

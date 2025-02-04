@@ -78,8 +78,8 @@ const Footer = () => {
         </div>
 
         <div className="text-sm text-muted-foreground mt-4">
-          <p>© {new Date().getFullYear()} ScamWatcher. All rights reserved.</p>
-          <p className="mt-1">Together against fraud in the Web3 world</p>
+          <p>© {new Date().getFullYear()} RugBuster. All rights reserved.</p>
+          <p className="mt-1">Protecting Web3 investors from rug pulls</p>
         </div>
       </div>
     </footer>
