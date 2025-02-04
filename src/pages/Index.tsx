@@ -74,9 +74,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-background p-2 md:p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8 gap-4">
+        <div className="flex justify-between items-center mb-6 gap-4 pt-2">
           <div className="flex items-center gap-3">
             <img 
               src="/lovable-uploads/a03e5c74-86a0-4321-8579-27e4caf444c8.png" 
