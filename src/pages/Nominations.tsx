@@ -4,7 +4,6 @@ import ScammerCard from "@/components/ScammerCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface Nomination {
   id: string;
@@ -24,7 +23,6 @@ const Nominations = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const { session } = useAuth();
 
   const fetchPendingNominations = async () => {
     try {
@@ -80,34 +78,7 @@ const Nominations = () => {
   }, []);
 
   const handleVote = async (nominationId: string) => {
-    if (!session) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to vote on nominations",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      // First check if user has already voted
-      const { data: existingVote } = await supabase
-        .from('user_actions')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('scammer_id', parseInt(nominationId))
-        .eq('action_type', 'vote')
-        .single();
-
-      if (existingVote) {
-        toast({
-          title: "Already voted",
-          description: "You have already voted on this nomination",
-          variant: "destructive",
-        });
-        return;
-      }
-
       // Get current votes
       const { data: nomination } = await supabase
         .from('nominations')
@@ -124,17 +95,6 @@ const Nominations = () => {
         .eq('id', nominationId);
 
       if (updateError) throw updateError;
-
-      // Record the user's vote action
-      const { error: actionError } = await supabase
-        .from('user_actions')
-        .insert({
-          user_id: session.user.id,
-          scammer_id: parseInt(nominationId),
-          action_type: 'vote'
-        });
-
-      if (actionError) throw actionError;
 
       toast({
         title: "Success",

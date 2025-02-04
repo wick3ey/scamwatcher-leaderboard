@@ -36,7 +36,7 @@ const Index = () => {
       setScammers(data || []);
     } catch (error: any) {
       console.error("Error fetching scammers:", error);
-      setError("Kunde inte hämta data. Försök igen senare.");
+      setError("Could not fetch data. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -136,6 +136,11 @@ const Index = () => {
                 <div key={scammer.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
                   <ScammerCard
                     {...scammer}
+                    twitterHandle={scammer.twitter_handle}
+                    scamDescription={scammer.scam_description}
+                    amountStolenUSD={scammer.amount_stolen_usd}
+                    lawsuitSignatures={scammer.lawsuit_signatures}
+                    targetSignatures={scammer.target_signatures}
                     rank={index + 1}
                     onVote={() => handleVote(scammer.id)}
                   />
