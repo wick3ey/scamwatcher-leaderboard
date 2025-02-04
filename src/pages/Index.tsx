@@ -96,10 +96,14 @@ const Index = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Crypto Rug Pull Registry
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-            A community-driven initiative to identify and track Web3 scammers. 
-            Help protect others by voting and nominating known scammers.
-          </p>
+          
+          <Alert className="max-w-2xl mx-auto mb-8 bg-primary/10 border-primary/20">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertDescription className="text-lg">
+              RugBuster is dedicated to pursuing legal action against high-profile scammers in the Web3 space. 
+              Our mission is to hold KOLs, influencers, and celebrities accountable when they betray their communities through fraudulent activities.
+            </AlertDescription>
+          </Alert>
           
           <Link 
             to="/nominations" 
