@@ -77,21 +77,20 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center border-b border-border/5 p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <img 
               src="/lovable-uploads/a03e5c74-86a0-4321-8579-27e4caf444c8.png" 
               alt="RugBuster Logo" 
-              className="w-16 h-16"
+              className="w-12 h-12 md:w-16 md:h-16"
             />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
+            <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
               RugBuster.
             </h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link to="/about">
-              <Button variant="outline" size={isMobile ? "sm" : "default"} className="flex items-center gap-2">
-                <Info className="h-4 w-4 md:h-5 md:w-5" />
-                <span className="hidden md:inline">About Us</span>
+              <Button variant="outline" size={isMobile ? "sm" : "default"}>
+                About Us
               </Button>
             </Link>
             <UserMenu />
@@ -104,20 +103,20 @@ const Index = () => {
             <Link to="/nominations?status=pending">
               <Button 
                 size="lg"
-                className="bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-white font-bold text-xl px-12 py-8 rounded-xl shadow-xl transform transition-all hover:-translate-y-1 hover:shadow-2xl border-2 border-white/10"
+                className="bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-white font-bold text-base md:text-xl px-6 md:px-12 py-6 md:py-8 rounded-xl shadow-xl transform transition-all hover:-translate-y-1 hover:shadow-2xl border-2 border-white/10 w-full md:w-auto"
               >
                 VIEW PENDING NOMINATIONS
               </Button>
             </Link>
           </div>
 
-          <h2 className="text-2xl font-semibold text-center mb-6">
+          <h2 className="text-xl md:text-2xl font-semibold text-center mb-6">
             Crypto Rug Pull Registry
           </h2>
 
           <Alert className="max-w-2xl mx-auto mb-8 bg-primary/10 border-primary/20">
             <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
-            <AlertDescription className="text-base md:text-lg">
+            <AlertDescription className="text-sm md:text-base lg:text-lg">
               RugBuster is dedicated to pursuing legal action against high-profile scammers in the Web3 space. 
               Our mission is to hold KOLs, influencers, and celebrities accountable when they betray their communities through fraudulent activities.
             </AlertDescription>
@@ -132,8 +131,8 @@ const Index = () => {
             
             <div className="lg:col-span-2">
               <div className="flex items-center justify-between mb-4 md:mb-6">
-                <h2 className="text-xl md:text-2xl font-bold">Top Scammers</h2>
-                <div className="text-sm text-muted-foreground">
+                <h2 className="text-lg md:text-xl lg:text-2xl font-bold">Top Scammers</h2>
+                <div className="text-xs md:text-sm text-muted-foreground">
                   Sorted by most votes
                 </div>
               </div>
