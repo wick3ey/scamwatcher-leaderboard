@@ -20,6 +20,7 @@ const Index = () => {
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [processingVotes, setProcessingVotes] = useState<{ [key: string]: boolean }>({});
+  const [processingSigns, setProcessingSigns] = useState<{ [key: string]: boolean }>({});
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -27,7 +28,6 @@ const Index = () => {
   useEffect(() => {
     fetchScammers();
 
-    // Set up real-time subscription for updates
     const channel = supabase
       .channel('public:nominations')
       .on(
@@ -92,7 +92,6 @@ const Index = () => {
     try {
       setProcessingVotes(prev => ({ ...prev, [id]: true }));
 
-      // Check for existing vote using a transaction
       const { data: existingVote, error: checkError } = await supabase
         .from('user_actions')
         .select('*')
@@ -114,7 +113,6 @@ const Index = () => {
         return;
       }
 
-      // Start a transaction by getting the current vote count
       const { data: nomination, error: fetchError } = await supabase
         .from('nominations')
         .select('votes')
@@ -127,7 +125,6 @@ const Index = () => {
 
       const currentVotes = nomination?.votes || 0;
 
-      // Insert the user action first
       const { error: actionError } = await supabase
         .from('user_actions')
         .insert({
@@ -140,7 +137,6 @@ const Index = () => {
         throw actionError;
       }
 
-      // Update the nomination's vote count
       const { error: updateError } = await supabase
         .from('nominations')
         .update({ votes: currentVotes + 1 })
@@ -150,7 +146,6 @@ const Index = () => {
         throw updateError;
       }
 
-      // Update local state optimistically
       setScammers(prev =>
         prev.map(scammer =>
           scammer.id === id
@@ -172,6 +167,101 @@ const Index = () => {
       });
     } finally {
       setProcessingVotes(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleLawsuitSign = async (id: string, numeric_id: number) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to sign the lawsuit.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (processingSigns[id]) {
+      return;
+    }
+
+    try {
+      setProcessingSigns(prev => ({ ...prev, [id]: true }));
+
+      const { data: existingSignature, error: checkError } = await supabase
+        .from('user_actions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('scammer_id', numeric_id)
+        .eq('action_type', 'lawsuit')
+        .maybeSingle();
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      if (existingSignature) {
+        toast({
+          title: "Already Signed",
+          description: "You have already signed this lawsuit.",
+          variant: "default",
+        });
+        return;
+      }
+
+      const { data: nomination, error: fetchError } = await supabase
+        .from('nominations')
+        .select('lawsuit_signatures')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const currentSignatures = nomination?.lawsuit_signatures || 0;
+
+      const { error: actionError } = await supabase
+        .from('user_actions')
+        .insert({
+          user_id: user.id,
+          scammer_id: numeric_id,
+          action_type: 'lawsuit'
+        });
+
+      if (actionError) {
+        throw actionError;
+      }
+
+      const { error: updateError } = await supabase
+        .from('nominations')
+        .update({ lawsuit_signatures: currentSignatures + 1 })
+        .eq('id', id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setScammers(prev =>
+        prev.map(scammer =>
+          scammer.id === id
+            ? { ...scammer, lawsuit_signatures: (scammer.lawsuit_signatures || 0) + 1 }
+            : scammer
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: "Your signature has been recorded!",
+      });
+    } catch (error) {
+      console.error("Error recording signature:", error);
+      toast({
+        title: "Failed to Record Signature",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingSigns(prev => ({ ...prev, [id]: false }));
     }
   };
 
@@ -261,7 +351,9 @@ const Index = () => {
                         targetSignatures={scammer.target_signatures}
                         rank={index + 1}
                         onVote={() => handleVote(scammer.id, scammer.numeric_id)}
+                        onSignLawsuit={() => handleLawsuitSign(scammer.id, scammer.numeric_id)}
                         isVoting={processingVotes[scammer.id]}
+                        isSigning={processingSigns[scammer.id]}
                       />
                     </div>
                   ))

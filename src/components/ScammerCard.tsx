@@ -25,6 +25,7 @@ interface ScammerCardProps {
   scamDescription: string;
   votes: number;
   onVote: () => void;
+  onSignLawsuit: () => void;
   rank?: number;
   amountStolenUSD: number;
   lawsuitSignatures: number;
@@ -32,6 +33,7 @@ interface ScammerCardProps {
   tokenName?: string;
   image_url?: string;
   isVoting?: boolean;
+  isSigning?: boolean;
 }
 
 const ScammerCard = ({ 
@@ -41,14 +43,16 @@ const ScammerCard = ({
   twitterHandle, 
   scamDescription, 
   votes, 
-  onVote, 
+  onVote,
+  onSignLawsuit,
   rank,
   amountStolenUSD,
   lawsuitSignatures,
   targetSignatures,
   tokenName,
   image_url,
-  isVoting = false
+  isVoting = false,
+  isSigning = false
 }: ScammerCardProps) => {
   const [showLawsuitDialog, setShowLawsuitDialog] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -62,7 +66,6 @@ const ScammerCard = ({
     const checkUserActions = async () => {
       if (!session?.user) return;
 
-      // Check if user has already voted or signed
       const { data: userActions, error } = await supabase
         .from('user_actions')
         .select('action_type')
@@ -79,7 +82,6 @@ const ScammerCard = ({
         setHasSignedLawsuit(userActions.some(action => action.action_type === 'lawsuit'));
       }
 
-      // Check if user is admin
       const { data: adminData } = await supabase
         .from('admin_users')
         .select('*')
@@ -112,9 +114,23 @@ const ScammerCard = ({
       }
       onVote();
     } else {
+      if (hasSignedLawsuit && !isAdmin) {
+        toast({
+          title: "Already signed",
+          description: "You have already signed this lawsuit",
+        });
+        return;
+      }
       setShowLawsuitDialog(true);
     }
   };
+
+  const handleLawsuitSubmit = async () => {
+    setShowLawsuitDialog(false);
+    onSignLawsuit();
+  };
+
+  // ... keep existing code (render method)
 
   return (
     <>
@@ -222,13 +238,17 @@ const ScammerCard = ({
               variant="outline"
               size="sm"
               className={`transition-all duration-300 ${
-                hasSignedLawsuit && !isAdmin ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
+                (hasSignedLawsuit && !isAdmin) || isSigning ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'
               }`}
               onClick={() => handleAction('lawsuit')}
-              disabled={hasSignedLawsuit && !isAdmin}
+              disabled={(hasSignedLawsuit && !isAdmin) || isSigning}
             >
-              <GavelIcon className="mr-2 h-4 w-4" />
-              {hasSignedLawsuit && !isAdmin ? 'Signed' : 'Sign Lawsuit'}
+              {isSigning ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <GavelIcon className="mr-2 h-4 w-4" />
+              )}
+              {isSigning ? 'Signing...' : hasSignedLawsuit && !isAdmin ? 'Signed' : 'Sign Lawsuit'}
             </Button>
           </div>
         </CardFooter>
@@ -238,6 +258,7 @@ const ScammerCard = ({
         open={showLawsuitDialog}
         onOpenChange={setShowLawsuitDialog}
         scammerName={name}
+        onSubmit={handleLawsuitSubmit}
       />
     </>
   );
