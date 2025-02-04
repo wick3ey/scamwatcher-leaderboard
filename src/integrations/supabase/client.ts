@@ -15,7 +15,7 @@ export const supabase = createClient<Database>(
       flowType: 'pkce',
       storage: window.localStorage,
       storageKey: 'rb-auth',
-      redirect_to: 'https://rugbuster.xyz'
+      redirectTo: 'https://rugbuster.xyz'
     },
     realtime: {
       params: {
