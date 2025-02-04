@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ScammerCard from "@/components/ScammerCard";
 import NominateScammer from "@/components/NominateScammer";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -10,15 +10,39 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
+import type { Nomination } from "@/types/nomination";
 
 const Index = () => {
-  const [scammers, setScammers] = useState([]);
+  const [scammers, setScammers] = useState<Nomination[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchScammers();
+
+    // Set up real-time subscription for updates
+    const channel = supabase
+      .channel('public:nominations')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'nominations',
+        },
+        () => {
+          fetchScammers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchScammers = async () => {
@@ -38,40 +62,97 @@ const Index = () => {
       setScammers(data || []);
     } catch (error: any) {
       console.error("Error fetching scammers:", error);
-      setError("Could not fetch data. Please try again later.");
+      setError(error.message || "Could not fetch data. Please try again later.");
+      toast({
+        title: "Error",
+        description: "Failed to load scammers. Please refresh the page.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVote = async (id: string) => {
+  const handleVote = async (id: string, numeric_id: number) => {
+    if (isUpdating) return;
+
     try {
-      const { data, error } = await supabase
+      setIsUpdating(true);
+
+      // First, record the user action
+      const { error: actionError } = await supabase
+        .from('user_actions')
+        .insert({
+          scammer_id: numeric_id,
+          action_type: 'vote'
+        });
+
+      if (actionError) {
+        throw new Error(actionError.message);
+      }
+
+      // Then update the vote count
+      const { data: currentData, error: fetchError } = await supabase
         .from('nominations')
         .select('votes')
         .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (fetchError) {
+        throw new Error(fetchError.message);
+      }
 
       const { error: updateError } = await supabase
         .from('nominations')
-        .update({ votes: (data?.votes || 0) + 1 })
+        .update({ votes: (currentData?.votes || 0) + 1 })
         .eq('id', id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
 
-      const updatedScammers = scammers.map(scammer => 
-        scammer.id === id 
-          ? { ...scammer, votes: (scammer.votes || 0) + 1 }
-          : scammer
+      // Update local state
+      setScammers(prev => 
+        prev.map(scammer => 
+          scammer.id === id 
+            ? { ...scammer, votes: (scammer.votes || 0) + 1 }
+            : scammer
+        )
       );
-      
-      setScammers(updatedScammers);
-    } catch (error) {
+
+      toast({
+        title: "Success",
+        description: "Your vote has been recorded!",
+      });
+    } catch (error: any) {
       console.error("Error updating votes:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to record vote. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+          <Button 
+            variant="outline" 
+            onClick={fetchScammers}
+            className="mt-4"
+          >
+            Try Again
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,6 +184,7 @@ const Index = () => {
               <Button 
                 size="lg"
                 className="bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-white font-bold text-base md:text-xl px-6 md:px-12 py-6 md:py-8 rounded-xl shadow-xl transform transition-all hover:-translate-y-1 hover:shadow-2xl border-2 border-white/10 w-full md:w-auto"
+                disabled={isLoading || isUpdating}
               >
                 VIEW PENDING NOMINATIONS
               </Button>
@@ -157,13 +239,22 @@ const Index = () => {
                         lawsuitSignatures={scammer.lawsuit_signatures}
                         targetSignatures={scammer.target_signatures}
                         rank={index + 1}
-                        onVote={() => handleVote(scammer.id)}
+                        onVote={() => handleVote(scammer.id, scammer.numeric_id)}
                       />
                     </div>
                   ))
                 ) : (
                   <div className="text-center text-muted-foreground py-8 md:py-12">
                     No scammers on the leaderboard yet. Check the pending nominations!
+                  </div>
+                )}
+
+                {isUpdating && (
+                  <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span>Processing vote...</span>
+                    </div>
                   </div>
                 )}
               </div>
