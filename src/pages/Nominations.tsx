@@ -4,6 +4,7 @@ import ScammerCard from "@/components/ScammerCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Nomination {
   id: string;
@@ -43,11 +44,7 @@ const Nominations = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load nominations';
       setError(errorMessage);
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      console.error('Error fetching nominations:', err);
     } finally {
       setIsLoading(false);
     }
@@ -56,8 +53,9 @@ const Nominations = () => {
   useEffect(() => {
     fetchPendingNominations();
 
+    // Set up real-time subscription
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('nominations-changes')
       .on(
         'postgres_changes',
         {
@@ -66,11 +64,14 @@ const Nominations = () => {
           table: 'nominations',
           filter: 'status=eq.pending'
         },
-        () => {
+        (payload) => {
+          console.log('Received real-time update:', payload);
           fetchPendingNominations();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -79,7 +80,6 @@ const Nominations = () => {
 
   const handleVote = async (nominationId: string) => {
     try {
-      // Get current votes
       const { data: nomination } = await supabase
         .from('nominations')
         .select('votes')
@@ -88,7 +88,6 @@ const Nominations = () => {
 
       const newVotes = (nomination?.votes || 0) + 1;
 
-      // Update votes
       const { error: updateError } = await supabase
         .from('nominations')
         .update({ votes: newVotes })
@@ -110,18 +109,13 @@ const Nominations = () => {
     }
   };
 
-  if (error) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-6 md:p-8">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-red-500 mb-4">Error Loading Nominations</h2>
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <button 
-            onClick={fetchPendingNominations}
-            className="text-primary hover:underline"
-          >
-            Try Again
-          </button>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
         </div>
       </div>
     );
@@ -130,7 +124,7 @@ const Nominations = () => {
   return (
     <div className="min-h-screen bg-background p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <header className="text-center mb-12 animate-fade-in">
+        <header className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 text-transparent bg-clip-text">
             Pending Nominations
           </h1>
@@ -145,10 +139,16 @@ const Nominations = () => {
           </Link>
         </header>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+        {error ? (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+            <button 
+              onClick={fetchPendingNominations}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Try Again
+            </button>
+          </Alert>
         ) : (
           <div className="grid gap-6">
             {pendingNominations.length > 0 ? (
