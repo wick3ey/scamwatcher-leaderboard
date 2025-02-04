@@ -26,14 +26,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -50,7 +48,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: `https://rugbuster.xyz`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         }
       });
       
