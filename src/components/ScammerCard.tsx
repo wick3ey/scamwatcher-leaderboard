@@ -55,11 +55,12 @@ const ScammerCard = ({
     const checkUserActions = async () => {
       if (!session?.user) return;
 
+      // Check if user has already voted or signed
       const { data: userActions } = await supabase
         .from('user_actions')
         .select('action_type')
         .eq('user_id', session.user.id)
-        .eq('scammer_id', parseInt(id)); // Convert string ID to number
+        .eq('scammer_id', parseInt(id));
 
       if (userActions) {
         setHasVoted(userActions.some(action => action.action_type === 'vote'));
@@ -83,7 +84,7 @@ const ScammerCard = ({
     if (!session) {
       toast({
         title: "Authentication required",
-        description: "Please sign in with Google to " + (action === 'vote' ? 'vote' : 'sign the lawsuit'),
+        description: "Please sign in to " + (action === 'vote' ? 'vote' : 'sign the lawsuit'),
       });
       await signIn();
       return;
@@ -106,19 +107,21 @@ const ScammerCard = ({
     }
 
     try {
+      // Record user action
       if (!isAdmin) {
-        const { error } = await supabase
+        const { error: actionError } = await supabase
           .from('user_actions')
           .insert({
             user_id: session.user.id,
-            scammer_id: parseInt(id), // Convert string ID to number
+            scammer_id: parseInt(id),
             action_type: action
           });
 
-        if (error) throw error;
+        if (actionError) throw actionError;
       }
 
       if (action === 'vote') {
+        // Update vote count
         const { error: updateError } = await supabase
           .from('nominations')
           .update({ votes: votes + 1 })
