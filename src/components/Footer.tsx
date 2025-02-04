@@ -13,50 +13,28 @@ const Footer = () => {
           <Button
             variant="ghost"
             size="lg"
-            className="rounded-full hover:bg-primary/20 p-3 transition-all duration-300"
-            asChild
+            className="rounded-full hover:bg-primary/20 p-3 transition-all duration-300 cursor-not-allowed opacity-50"
+            disabled
           >
-            <a
-              href="https://twitter.com/scamwatcher"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Twitter"
-              className="group"
-            >
-              <Twitter className="h-8 w-8 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary" />
-            </a>
+            <Twitter className="h-8 w-8" />
           </Button>
 
           <Button
             variant="ghost"
             size="lg"
-            className="rounded-full hover:bg-primary/20 p-3 transition-all duration-300"
-            asChild
+            className="rounded-full hover:bg-primary/20 p-3 transition-all duration-300 cursor-not-allowed opacity-50"
+            disabled
           >
-            <a
-              href="https://t.me/scamwatcher"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Telegram"
-              className="group"
-            >
-              <Send className="h-8 w-8 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary" />
-            </a>
+            <Send className="h-8 w-8" />
           </Button>
 
           <Button
             variant="ghost"
             size="lg"
-            className="rounded-full hover:bg-primary/20 p-3 transition-all duration-300"
-            asChild
+            className="rounded-full hover:bg-primary/20 p-3 transition-all duration-300 cursor-not-allowed opacity-50"
+            disabled
           >
-            <a
-              href="mailto:contact@scamwatcher.com"
-              aria-label="Email"
-              className="group"
-            >
-              <Mail className="h-8 w-8 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary" />
-            </a>
+            <Mail className="h-8 w-8" />
           </Button>
         </div>
 
