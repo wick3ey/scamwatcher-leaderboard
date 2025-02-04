@@ -76,14 +76,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center border-b border-border/5">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center border-b border-border/5 p-4">
+          <div className="flex items-center gap-3">
             <img 
               src="/lovable-uploads/a03e5c74-86a0-4321-8579-27e4caf444c8.png" 
               alt="RugBuster Logo" 
-              className="w-10 h-10"
+              className="w-14 h-14" // Increased from w-10 h-10
             />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D946EF] text-transparent bg-clip-text">
               RugBuster.
             </h1>
           </div>

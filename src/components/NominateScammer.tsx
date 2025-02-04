@@ -106,7 +106,7 @@ const NominateScammer = () => {
         <Input
           value={tokenName}
           onChange={(e) => setTokenName(e.target.value)}
-          placeholder="e.g. SAFE, MOON"
+          placeholder="ticker"
           className="bg-secondary/30"
           required
         />

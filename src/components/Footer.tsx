@@ -1,4 +1,4 @@
-import { Twitter, Mail, Github, Linkedin } from "lucide-react";
+import { Twitter, Mail, Send } from "lucide-react";
 import { Button } from "./ui/button";
 
 const Footer = () => {
@@ -34,30 +34,13 @@ const Footer = () => {
             asChild
           >
             <a
-              href="https://github.com/scamwatcher"
+              href="https://t.me/scamwatcher"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Github"
+              aria-label="Telegram"
               className="group"
             >
-              <Github className="h-8 w-8 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary" />
-            </a>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="lg"
-            className="rounded-full hover:bg-primary/20 p-3 transition-all duration-300"
-            asChild
-          >
-            <a
-              href="https://linkedin.com/company/scamwatcher"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn"
-              className="group"
-            >
-              <Linkedin className="h-8 w-8 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary" />
+              <Send className="h-8 w-8 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary" />
             </a>
           </Button>
 
