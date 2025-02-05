@@ -268,6 +268,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
+        <Alert className="border-primary/20 bg-primary/5 mb-0 rounded-none">
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-sm text-center">
+            The $PUMP token launched on pump.fun is solely for marketing purposes to increase visibility of our platform. Not Financial Advice (NFA).
+          </AlertDescription>
+        </Alert>
+        
         <div className="flex justify-between items-center border-b border-border/5 p-4">
           <div className="flex items-center gap-2 md:gap-3">
             <img 
