@@ -271,7 +271,7 @@ const Index = () => {
         <div className="flex justify-between items-center border-b border-border/5 p-4">
           <div className="flex items-center gap-2 md:gap-3">
             <img 
-              src="/lovable-uploads/a03e5c74-86a0-4321-8579-27e4caf444c8.png" 
+              src="/lovable-uploads/1191872a-530e-4792-9803-09a1ee30f0c5.png" 
               alt="RugBuster Logo" 
               className="w-12 h-12 md:w-16 md:h-16"
             />
